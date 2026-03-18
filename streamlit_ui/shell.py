@@ -104,8 +104,27 @@ def _inject_styles() -> None:
         }
 
         section[data-testid="stSidebar"] .stAlert {
-            background: rgba(255, 255, 255, 0.07) !important;
-            border-color: rgba(255, 255, 255, 0.13) !important;
+            border-radius: var(--r-sm) !important;
+        }
+
+        /* Avviso norme placeholder — visibile su sfondo navy */
+        section[data-testid="stSidebar"] div[data-testid="stAlertContainer"]:has([data-testid="stAlertContentWarning"]) {
+            background: rgba(255, 180, 0, 0.22) !important;
+            border: 1px solid rgba(255, 180, 0, 0.60) !important;
+        }
+
+        section[data-testid="stSidebar"] div[data-testid="stAlertContainer"]:has([data-testid="stAlertContentWarning"]) p,
+        section[data-testid="stSidebar"] div[data-testid="stAlertContainer"]:has([data-testid="stAlertContentWarning"]) strong {
+            color: #ffe08a !important;
+        }
+
+        section[data-testid="stSidebar"] div[data-testid="stAlertContainer"]:has([data-testid="stAlertContentSuccess"]) {
+            background: rgba(39, 174, 96, 0.22) !important;
+            border: 1px solid rgba(100, 210, 140, 0.60) !important;
+        }
+
+        section[data-testid="stSidebar"] div[data-testid="stAlertContainer"]:has([data-testid="stAlertContentSuccess"]) p {
+            color: #a8f0c0 !important;
         }
 
         section[data-testid="stSidebar"] div[data-testid="stPageLink"] a {
@@ -143,6 +162,7 @@ def _inject_styles() -> None:
             border-radius: var(--r);
             padding: 0.8rem 0.95rem;
             box-shadow: var(--c-shadow);
+            overflow: visible;
         }
 
         div[data-testid="stMetricLabel"] * {
@@ -156,6 +176,10 @@ def _inject_styles() -> None:
         div[data-testid="stMetricValue"] * {
             color: var(--c-ink) !important;
             font-weight: 700;
+            font-size: clamp(0.82rem, 2.3vw, 1.55rem) !important;
+            overflow-wrap: break-word;
+            word-break: break-word;
+            white-space: normal;
         }
 
         /* ─── Buttons ────────────────────────────────────────── */
@@ -174,6 +198,8 @@ def _inject_styles() -> None:
 
         .stButton > button[kind="primary"],
         .stDownloadButton > button[kind="primary"],
+        .stFormSubmitButton button,
+        button[data-testid="stBaseButton-primaryFormSubmit"],
         button[data-testid="baseButton-primary"] {
             background: linear-gradient(180deg, #2271a8 0%, var(--c-primary) 100%) !important;
             color: #ffffff !important;
@@ -181,6 +207,8 @@ def _inject_styles() -> None:
         }
 
         .stButton > button[kind="primary"]:hover,
+        .stFormSubmitButton button:hover,
+        button[data-testid="stBaseButton-primaryFormSubmit"]:hover,
         button[data-testid="baseButton-primary"]:hover {
             box-shadow: 0 4px 14px rgba(26, 79, 114, 0.30) !important;
             transform: translateY(-1px);
@@ -188,6 +216,14 @@ def _inject_styles() -> None:
 
         .stButton > button:not([kind="primary"]):hover {
             border-color: var(--c-primary-l);
+        }
+
+        /* Fix: il testo dei pulsanti non deve ereditare il colore muted dalla regola p{} */
+        .stFormSubmitButton button p,
+        .stButton > button p,
+        .stDownloadButton > button p {
+            color: inherit !important;
+            font-size: inherit !important;
         }
 
         /* ─── Inputs ─────────────────────────────────────────── */
@@ -332,8 +368,57 @@ def _inject_styles() -> None:
             padding-bottom: 0.45rem !important;
         }
 
+        /* Placeholder "1-6" non viene troncato nelle colonne strette */
+        div[data-testid="stTextInput"] input[aria-label^="Risposta "]::placeholder {
+            font-size: 0.72rem;
+            font-weight: 400;
+            letter-spacing: -0.01em;
+            opacity: 0.7;
+        }
+
         div[data-testid="stTextInput"] {
             margin-bottom: 0.3rem;
+        }
+
+        /* ─── Caption: contrasto migliorato ──────────────────── */
+        div[data-testid="stCaptionContainer"] p {
+            color: #3d5a6e !important;
+        }
+
+        /* ─── Heading anchor: visibile solo su hover ─────────── */
+        [data-testid="stHeaderActionElements"] {
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .stHeading:hover [data-testid="stHeaderActionElements"] {
+            opacity: 0.4;
+        }
+
+        /* ─── Nascondi nav auto Streamlit (rimpiazzata da page_link) ─ */
+        [data-testid="stSidebarNav"] {
+            display: none !important;
+        }
+
+        /* ─── Localizzazione testo file uploader ─────────────── */
+        div[data-testid="stFileUploaderDropzoneInstructions"] > div > span:first-child {
+            font-size: 0 !important;
+        }
+
+        div[data-testid="stFileUploaderDropzoneInstructions"] > div > span:first-child::after {
+            content: "Trascina il file qui oppure clicca per selezionare";
+            font-size: 0.875rem;
+            color: inherit;
+        }
+
+        div[data-testid="stFileUploaderDropzoneInstructions"] > div > span:last-child {
+            font-size: 0 !important;
+        }
+
+        div[data-testid="stFileUploaderDropzoneInstructions"] > div > span:last-child::after {
+            content: "Limite 5\00a0MB per file \2022 CSV, XLSX, XLS";
+            font-size: 0.75rem;
+            color: inherit;
         }
         </style>
         """,

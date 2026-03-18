@@ -79,6 +79,21 @@ def _on_calcola():
         st.session_state["calc_error"] = "⚠️ Non è stata inserita nessuna risposta. Compila almeno un item."
         return
 
+    # Controlla valori fuori range 1–6 — solo avviso, la logica di scoring non cambia
+    out_of_range = [
+        f"{item}='{st.session_state.get(_response_key(item), '').strip()}'"
+        for item in RESPONSE_ITEMS
+        if str(st.session_state.get(_response_key(item), "")).strip().isdigit()
+        and int(st.session_state.get(_response_key(item), "0").strip()) > 6
+    ]
+    if out_of_range:
+        st.session_state["resp_range_warning"] = (
+            f"⚠️ Valori fuori range ignorati (attesi 1–6): {', '.join(out_of_range)}. "
+            "Le risposte non valide sono trattate come mancanti."
+        )
+    else:
+        st.session_state.pop("resp_range_warning", None)
+
     st.session_state.pop("calc_error", None)
 
     # Calcola età
@@ -117,7 +132,7 @@ def _on_salva():
 def _on_reset():
     """Pulisce lo stato per un nuovo soggetto."""
     # Pulisci risultati e messaggi
-    for key in ["last_result", "last_responses", "save_msg", "calc_error"]:
+    for key in ["last_result", "last_responses", "save_msg", "calc_error", "resp_range_warning"]:
         st.session_state.pop(key, None)
     for item in RESPONSE_ITEMS:
         st.session_state.pop(_response_key(item), None)
@@ -260,6 +275,9 @@ with btn_col2:
 # ─────────────────────────────────────────
 if st.session_state.get("calc_error"):
     st.warning(st.session_state["calc_error"])
+
+if st.session_state.get("resp_range_warning"):
+    st.warning(st.session_state["resp_range_warning"])
 
 if "save_msg" in st.session_state:
     st.toast(st.session_state["save_msg"], icon="✅")

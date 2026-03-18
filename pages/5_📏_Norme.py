@@ -45,10 +45,18 @@ def _on_reset_norms():
 
 
 st.header("📏 Tabelle Normative CPM")
-st.caption("Lo stato corrente delle norme è mostrato nella sidebar. Qui puoi caricare, scaricare o ripristinare il CSV usato dal tool.")
 
-# ── STATO NORME ───────────────────────────
+# ── Stato norme: banner visibile direttamente in pagina ──────
 using_placeholder = is_using_placeholder()
+if using_placeholder:
+    st.warning(
+        "**Norme di esempio attive** — i percentili mostrati sono valori fittizi. "
+        "Usa il pannello qui sotto per caricare le norme reali (Belacchi et al., 2008).",
+        icon="⚠️",
+    )
+else:
+    st.success("**Norme personalizzate attive** — percentili calcolati dal file CSV caricato.", icon="✅")
+
 norms_panel_open = (
     using_placeholder
     or st.session_state.get("norm_csv_upload") is not None
@@ -59,16 +67,11 @@ norms_panel_open = (
 # ─────────────────────────────────────────
 #  CARICAMENTO NORME DA CSV
 # ─────────────────────────────────────────
-with st.expander("📂 Carica / Gestisci Norme dal Manuale", expanded=norms_panel_open):
-    st.markdown(
-        "Per caricare le norme dal manuale Belacchi et al. (2008):\n\n"
-        "1. **Scarica il template CSV** qui sotto\n"
-        "2. **Aprilo con Excel** (o LibreOffice Calc)\n"
-        "3. **Sostituisci i valori** con quelli del manuale, mantenendo il formato\n"
-        "4. **Salva come CSV** e caricalo qui\n\n"
-        "Il formato è: prima colonna = Punteggio Grezzo, "
-        "colonne successive = percentile per ogni fascia d'età. "
-        "Sono supportate le colonne Età 3–11 e, se presenti, Adulti e Anziani."
+with st.expander("📂 Carica / Gestisci Norme", expanded=norms_panel_open):
+    st.caption(
+        "Scarica il template, compila con i valori del manuale (Belacchi et al., 2008) e ricaricalo. "
+        "Formato: prima colonna = Punteggio Grezzo (0-36); "
+        "colonne successive = percentile per fascia d'eta (es. Eta 7, Adulti, Anziani)."
     )
 
     # Download template
