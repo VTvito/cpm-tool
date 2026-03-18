@@ -243,13 +243,6 @@ st.caption(
     "*CPM – Coloured Progressive Matrices*. Organizzazioni Speciali, Firenze."
 )
 
-)
-from streamlit_ui import configure_page
-
-
-configure_page("Norme CPM", "📏")
-
-_PERC_OPTIONS = ["<5", "5", "10", "25", "50", "75", "90", "95", ">95"]
 
 
 def _build_norm_df() -> pd.DataFrame:
