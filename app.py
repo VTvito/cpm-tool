@@ -12,6 +12,12 @@ from streamlit_ui import configure_page
 
 configure_page("CPM Scoring Tool", "🧩")
 
+# Seed demo al primo accesso della sessione (solo se DB vuoto)
+if "demo_seeded" not in st.session_state:
+    from core.seed_demo import seed_if_empty
+    seed_if_empty()
+    st.session_state["demo_seeded"] = True
+
 # ── Hero ──────────────────────────────────
 st.markdown(
     """

@@ -97,6 +97,14 @@ def get_all_subjects() -> list[dict]:
         return [dict(r) for r in rows]
 
 
+def is_db_empty() -> bool:
+    """Restituisce True se non ci sono soggetti nel database."""
+    init_db()
+    with _connect() as conn:
+        count = conn.execute("SELECT COUNT(*) FROM subjects").fetchone()[0]
+        return count == 0
+
+
 def get_subject(subject_id: int) -> dict | None:
     """Restituisce un singolo soggetto per id."""
     init_db()
