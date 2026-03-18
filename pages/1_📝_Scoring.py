@@ -15,7 +15,7 @@ from core.norms import age_to_band
 from core.charts import bar_chart_sets, radar_chart, percentile_gauge, item_heatmap
 from core.pdf_report import generate_pdf
 from core.database import save_result
-from ui_shell import configure_page
+from streamlit_ui import configure_page
 
 configure_page("Scoring Singolo", "📝")
 

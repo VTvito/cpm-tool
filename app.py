@@ -8,7 +8,7 @@ Avvia con:  streamlit run app.py
 from pathlib import Path
 
 import streamlit as st
-from ui_shell import configure_page
+from streamlit_ui import configure_page
 
 configure_page("CPM Scoring Tool", "🧩")
 

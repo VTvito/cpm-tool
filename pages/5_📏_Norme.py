@@ -14,7 +14,7 @@ from core.norms import (
     lookup_percentile, describe_percentile,
     is_using_placeholder, save_norms_csv, get_norms_csv_path,
 )
-from ui_shell import configure_page
+from streamlit_ui import configure_page
 
 
 configure_page("Norme CPM", "📏")

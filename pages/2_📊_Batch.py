@@ -12,7 +12,7 @@ import pandas as pd
 from core.answer_key import SETS, ANSWER_KEY
 from core.scoring import score_with_norms, normalize_response
 from core.database import save_result
-from ui_shell import configure_page
+from streamlit_ui import configure_page
 
 
 configure_page("Batch Scoring", "📊")
