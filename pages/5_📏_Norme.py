@@ -43,16 +43,6 @@ def _on_reset_norms():
 
 st.header("📏 Tabelle Normative CPM")
 
-with st.expander("ℹ️ Come usare questa pagina", expanded=False):
-    st.markdown(
-        """
-        - Qui puoi verificare se il tool usa norme placeholder o personalizzate.
-        - Se devi usare percentili reali, scarica il template e carica il CSV con i valori del manuale.
-        - La tabella centrale mostra la conversione punteggio grezzo -> percentile.
-        - Il calcolatore rapido serve per controlli veloci senza passare dalla pagina Scoring.
-        """
-    )
-
 # ── STATO NORME ───────────────────────────
 using_placeholder = is_using_placeholder()
 
@@ -71,7 +61,6 @@ else:
         "I percentili vengono calcolati usando il file norme caricato.",
         icon="✅",
     )
-    st.caption("Se in futuro cambi manuale o versione delle norme, ricarica il CSV corrispondente prima di fare nuovo scoring.")
 
 # ─────────────────────────────────────────
 #  CARICAMENTO NORME DA CSV
@@ -117,7 +106,6 @@ with st.expander("📂 Carica / Gestisci Norme dal Manuale", expanded=using_plac
              "Punteggio Grezzo, Età 3, Età 4, …, Età 11",
         key="norm_csv_upload",
     )
-    st.caption("Il CSV viene validato prima del salvataggio. Se il formato non è corretto, il tool mostra un messaggio di errore senza sovrascrivere le norme correnti.")
     st.button(
         "📤 Carica e Applica Norme",
         type="primary",
@@ -138,7 +126,6 @@ with st.expander("📂 Carica / Gestisci Norme dal Manuale", expanded=using_plac
 
     if st.session_state.get("norm_upload_ok"):
         st.success(f"✅ {st.session_state['norm_upload_ok']}")
-        st.info("Prossimo passo: ora puoi usare le pagine **Scoring** o **Batch** con le norme caricate.", icon="➡️")
 
 st.divider()
 
@@ -176,7 +163,6 @@ c1, c2, c3 = st.columns(3)
 c1.metric("Punteggio", f"{raw} / 36")
 c2.metric("Percentile", pct)
 c3.metric("Classificazione", desc)
-st.caption("Il calcolatore rapido è utile per verifiche veloci. Per salvare un risultato, usa invece la pagina Scoring o Batch.")
 
 st.divider()
 

@@ -67,19 +67,7 @@ def _on_generate_report_pdf():
     st.session_state["rpt_pdf_success"] = "Report generato con successo!"
 
 st.header("📄 Genera Report PDF")
-st.caption("Seleziona un soggetto dal database per generare un report PDF stampabile.")
-
-with st.expander("ℹ️ Come usare questa pagina", expanded=False):
-    st.markdown(
-        """
-        1. Seleziona un soggetto già salvato nel database.
-        2. Controlla l'anteprima dei dati e dei risultati.
-        3. Aggiungi eventuali note al report.
-        4. Genera il PDF singolo oppure uno ZIP con tutti i report.
-
-        Nota: se i grafici non entrano nel PDF, verifica che `kaleido` sia installato.
-        """
-    )
+st.caption("Seleziona un soggetto dal database e genera un PDF stampabile.")
 
 # ─────────────────────────────────────────
 #  SELEZIONE SOGGETTO
@@ -105,7 +93,6 @@ selected_label = st.selectbox(
     key="rpt_selected_label",
     on_change=_clear_report_pdf_state,
 )
-st.caption("Se il database cresce, usa cognome, nome e ID mostrati nell'elenco per individuare rapidamente il soggetto corretto.")
 selected = options[selected_label]
 st.session_state["rpt_selected_subject"] = selected
 result = subject_to_result(selected)
@@ -159,7 +146,7 @@ note_extra = st.text_area(
     key="rpt_note",
     on_change=_clear_report_pdf_state,
 )
-st.caption("Queste note vengono aggiunte solo al PDF generato, non modificano automaticamente il record originale nel database.")
+st.caption("Le note vengono aggiunte solo al PDF, non modificano il record nel database.")
 result.note = note_extra
 
 st.markdown("")
@@ -183,7 +170,6 @@ if st.session_state.get("rpt_pdf_bytes"):
         mime="application/pdf",
         width="stretch",
     )
-    st.info("Prossimo passo: se devi archiviare o condividere più report, usa la sezione batch qui sotto.", icon="➡️")
 
 if st.session_state.get("rpt_pdf_success"):
     st.success(f"✅ {st.session_state['rpt_pdf_success']}")

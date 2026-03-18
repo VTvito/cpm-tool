@@ -55,8 +55,9 @@ Target principale:
 
 ### 6. Guida utente
 - guida rapida disponibile nel file `docs/GUIDA.md`
-- stessa guida consultabile nella home dell'app
-- home con percorsi rapidi orientati ai task principali
+- stessa guida consultabile nella home dell'app (expander)
+- home con navigazione compatta a link diretti verso le 5 pagine
+- stato norme (placeholder/personalizzate) nella sidebar globale
 
 ## Vincoli operativi
 
@@ -81,8 +82,9 @@ tests/               pytest + Playwright
 - pulsanti Streamlit sempre nel widget tree, con `on_click` e `disabled`
 - nella pagina Scoring il valore utile del `st.data_editor` è il DataFrame restituito dal widget; non usare direttamente lo stato raw del widget come se fosse sempre un DataFrame
 - le norme CSV si validano prima del salvataggio e si mappano per header, non per posizione
-- progressive disclosure: tenere visibili i dati essenziali e spostare operazioni avanzate o grafici secondari in expander/sezioni dedicate
-- next-step guidance: dopo calcolo, salvataggio o upload, suggerire il passo successivo più probabile senza aprire nuove pagine automaticamente
+- UI leggera: niente expander "come usare questa pagina" — le istruzioni sono nella Guida; niente info box "prossimo passo" dopo ogni azione
+- stato norme (placeholder / personalizzate) visibile nella sidebar, non ripetuto in ogni pagina
+- home con navigazione compatta (page_link + caption), guida completa accessibile via expander
 
 ## Qualità attuale verificata
 

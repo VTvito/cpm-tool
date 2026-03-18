@@ -150,34 +150,13 @@ def _on_batch_save():
     st.session_state["batch_save_msg"] = f"{count} soggetti salvati nel database!"
 
 st.header("📊 Batch Scoring – Più Soggetti")
-st.caption(
-    "Carica un file **CSV** o **Excel** con le risposte di più soggetti. "
-    "Il tool calcolerà automaticamente i punteggi per tutti."
-)
-
-with st.expander("ℹ️ Come usare questa pagina", expanded=False):
-    st.markdown(
-        """
-        1. Scarica il template CSV e usalo come modello.
-        2. Compila una riga per ogni soggetto.
-        3. Carica il file e controlla l'anteprima.
-        4. Premi **Calcola Score per Tutti**.
-        5. Esporta i risultati o salvali nel database.
-
-        Suggerimento: per evitare errori, non modificare i nomi delle colonne item.
-        """
-    )
+st.caption("Carica un file CSV o Excel con le risposte di più soggetti.")
 
 # ─────────────────────────────────────────
 #  TEMPLATE SCARICABILE
 # ─────────────────────────────────────────
 st.subheader("1️⃣  Scarica il Template")
-st.markdown(
-    "Usa questo template per compilare i dati. "
-    "Ogni riga è un soggetto, ogni colonna un item (A1–B12). "
-    "Le date possono essere in formato **GG/MM/AAAA** o **AAAA-MM-GG**."
-)
-st.caption("Per ridurre errori, non rinominare le colonne del template e non modificare i codici item.")
+st.caption("Ogni riga è un soggetto, ogni colonna un item (A1–B12). Non rinominare le colonne.")
 
 all_items = []
 for set_name in ["A", "Ab", "B"]:
@@ -291,7 +270,6 @@ results_df = st.session_state.get("batch_results_df")
 if results_df is not None:
     # ── TABELLA RISULTATI ───────────
     st.subheader("📋 Risultati")
-    st.info("Prossimi passi: puoi esportare i risultati oppure salvarli nel database per generare i report in seguito.", icon="➡️")
 
     st.dataframe(
         results_df,

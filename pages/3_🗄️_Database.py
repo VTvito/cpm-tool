@@ -71,18 +71,7 @@ def _on_restore_database():
     st.session_state.pop("db_restore_error", None)
 
 st.header("🗄️ Database Soggetti")
-st.caption("Tutti i risultati salvati dalle sessioni di scoring.")
-
-with st.expander("ℹ️ Come usare questa pagina", expanded=False):
-    st.markdown(
-        """
-        - Usa la ricerca rapida per nome o cognome.
-        - Apri i filtri avanzati per restringere per esaminatore, fascia età o punteggio.
-        - Esporta in CSV o Excel per analisi successive.
-        - Usa l'export anonimizzato quando devi condividere dati di ricerca.
-        - Prima di operazioni delicate, scarica un backup del database.
-        """
-    )
+st.caption("Risultati salvati dalle sessioni di scoring.")
 
 # ─────────────────────────────────────────
 #  CARICAMENTO DATI
@@ -141,7 +130,6 @@ search_text = st.text_input(
     key="db_search",
     placeholder="Es: Rossi, Marco, ...",
 )
-st.caption("Usa la ricerca rapida per ritrovare un soggetto. I filtri avanzati sono utili soprattutto su archivi più grandi.")
 if search_text:
     search_lower = search_text.lower()
     df_display = df_display[
@@ -229,7 +217,6 @@ st.divider()
 #  EXPORT
 # ─────────────────────────────────────────
 st.subheader("📥 Esporta Dati")
-st.caption("Per la condivisione con altri ricercatori, preferisci l'export anonimizzato.")
 col_e1, col_e2, col_e3 = st.columns(3)
 
 with col_e1:
@@ -334,6 +321,4 @@ with st.expander("🛠️ Operazioni avanzate", expanded=False):
         if st.session_state.get("db_restore_error"):
             st.error(st.session_state["db_restore_error"])
         if st.session_state.get("db_restore_msg"):
-            st.toast("Database ripristinato dal backup!", icon="✅")
             st.success(st.session_state["db_restore_msg"])
-            st.info("Prossimo passo: ricarica la pagina e verifica subito il numero di record presenti nel database.", icon="➡️")

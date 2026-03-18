@@ -12,7 +12,7 @@ from datetime import date
 
 from core.answer_key import SETS, ANSWER_KEY
 from core.scoring import score_with_norms, ScoringResult
-from core.norms import age_to_band, is_using_placeholder
+from core.norms import age_to_band
 from core.charts import bar_chart_sets, radar_chart, percentile_gauge, item_heatmap
 from core.pdf_report import generate_pdf
 from core.database import save_result
@@ -115,28 +115,7 @@ def _on_reset():
 # ─────────────────────────────────────────
 
 st.header("📝 Scoring Singolo Soggetto")
-st.caption("Inserisci i dati del soggetto e le risposte ai 36 item, poi premi **Calcola**.")
-
-with st.expander("ℹ️ Come usare questa pagina", expanded=False):
-    st.markdown(
-        """
-        1. Compila i dati del soggetto.
-        2. Inserisci le risposte nelle tre griglie Set A, Ab e B.
-        3. Premi **Calcola Score** per ottenere punteggi, percentile e grafici.
-        4. Se il risultato va conservato, usa **Salva nel Database**.
-
-        Nota: se mancano date valide, il percentile può non essere disponibile.
-        """
-    )
-
-if is_using_placeholder():
-    st.warning(
-        "⚠️ Le norme in uso sono **valori di esempio**. "
-        "Carica le norme reali dalla pagina **📏 Norme** prima dell'uso clinico.",
-        icon="⚠️",
-    )
-else:
-    st.success("✅ Norme personalizzate attive.", icon="✅")
+st.caption("Compila anagrafica e risposte, poi premi **Calcola Score**.")
 
 
 
@@ -200,12 +179,7 @@ with st.expander("👤 Dati del Soggetto", expanded=True):
 #  GRIGLIA RISPOSTE (data_editor)
 # ─────────────────────────────────────────
 st.subheader("📋 Risposte ai 36 Item")
-st.caption(
-    "Per ogni item inserisci il numero della risposta scelta dal soggetto (1–6). "
-    "Lascia vuoto se l'item non è stato risposto. "
-    "Usa **Tab** per spostarti rapidamente tra le celle."
-)
-st.caption("Suggerimento: compila i set da sinistra a destra e usa il contatore sotto per controllare il numero di item inseriti.")
+st.caption("Inserisci la risposta (1–6) per ogni item. Lascia vuoto se non risposto.")
 
 set_configs = [
     ("Set A", "A", "#D6EAF8"),
@@ -335,12 +309,8 @@ if "last_result" in st.session_state:
             st.metric("Percentile", result.percentile)
         with p2:
             st.metric("Descrizione", result.description)
-        st.caption("Il percentile confronta il soggetto con la fascia d'età selezionata dalle date inserite.")
     else:
-        st.info(
-            "ℹ️ Inserisci le date di nascita e somministrazione per ottenere "
-            "il percentile e la classificazione qualitativa."
-        )
+        st.caption("Inserisci le date di nascita e somministrazione per il percentile.")
 
     # Indice di discrepanza tra set
     if result.discrepancy_flag == "significativa":
@@ -356,12 +326,8 @@ if "last_result" in st.session_state:
             "La differenza tra i set è lievemente elevata.",
             icon="🟡",
         )
-    else:
-        st.caption("Discrepanza: differenza tra i tre set. Se non compare un avviso, il profilo è sostanzialmente omogeneo.")
-
     # ── GRAFICI PRINCIPALI ──────────────
     st.divider()
-    st.subheader("📊 Lettura rapida")
 
     g1, g2 = st.columns(2)
     with g1:
@@ -403,11 +369,5 @@ if "last_result" in st.session_state:
             width="stretch",
             key="btn_pdf",
         )
-        st.info(
-            "Prossimi passi: puoi salvare il risultato nel database, scaricare il PDF oppure iniziare un nuovo soggetto.",
-            icon="➡️",
-        )
     except Exception as e:
         st.caption(f"⚠️ PDF: {e}")
-else:
-    st.info("👆 Compila le risposte e premi **Calcola Score** per vedere i risultati.")

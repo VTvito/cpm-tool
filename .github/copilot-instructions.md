@@ -62,14 +62,13 @@ if "result" in st.session_state:       # Conditional DISPLAY only
     st.write(st.session_state["result"])
 ```
 
-### UX Pattern: Essential First
+### UX Pattern: Lean UI
 
-For this project, prefer showing the essential action/result first and moving secondary details into expanders or clearly separated sections. Good examples already present in the app:
-- Scoring: main metrics first, advanced charts later
-- Database: archive/export first, maintenance actions later
-- Norme: quick calculator first, full table later
-
-When useful, add short next-step guidance after successful actions (save, upload, generate PDF).
+Keep pages clean and focused:
+- **No per-page help expanders** — user guidance lives in `docs/GUIDA.md` and the Home expander only.
+- **No "next step" info boxes** after actions (save, upload, generate) — trust the user to navigate.
+- **Norms status** (placeholder / custom) is shown **once in the sidebar** (set in `app.py`), not repeated on individual pages.
+- Advanced operations and secondary charts go in expanders or lower sections.
 
 ### Scoring Page data_editor
 

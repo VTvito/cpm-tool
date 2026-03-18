@@ -45,11 +45,13 @@ The Scoring page uses `st.data_editor` (3 grids: Set A, Ab, B) instead of 36 ind
 
 Pages import from `core/` only. Never import `streamlit` inside `core/` modules.
 
-## UX Pattern — Essential First
+## UX Pattern — Lean UI
 
 - Keep the primary task and primary CTA visible without requiring expanders.
 - Move advanced operations, maintenance actions, or secondary charts into expanders or lower sections.
-- After successful actions, prefer short contextual next-step hints over long explanatory text.
+- Do NOT add per-page "ℹ️ Come usare questa pagina" expanders — guidance lives in `docs/GUIDA.md` and the Home page expander.
+- Do NOT add "Prossimo passo" / next-step info boxes after actions — keep the UI quiet after saves and uploads.
+- Norms status (placeholder / custom) is shown once in the sidebar (`app.py`), not on individual pages.
 
 ## Deprecation: use_container_width
 
