@@ -49,7 +49,8 @@ Target principale:
 
 ### 5. Norme
 - fallback con valori di esempio integrato
-- caricamento CSV da pagina Norme
+- caricamento Excel (.xlsx/.xls) o CSV da pagina Norme; Excel convertito in CSV internamente
+- download norme in formato Excel (template e norme attive)
 - mapping delle colonne età guidato dagli header CSV
 - download norme attuali e reset ai valori di esempio
 
@@ -66,6 +67,7 @@ Target principale:
 - uso locale/offline o su rete fidata
 - nessuna autenticazione o gestione multi-utente
 - `pandas < 3.0`
+- `use_container_width=True` deprecato in Streamlit ≥ 1.55 → usare `width='stretch'`
 - PDF solo con caratteri ASCII sanitizzati
 - valori normativi reali non inclusi nel repository
 
@@ -94,7 +96,7 @@ tests/               pytest + Playwright
 
 ## Qualità attuale verificata
 
-- unit test `pytest`: 47 passati
+- unit test `pytest`: 49 passati
 - smoke test ed E2E browser integrati in `pytest` tramite marker dedicati (`smoke`, `e2e`) ed esclusi dal giro standard per non rallentare lo sviluppo
 - E2E Playwright: passati sui flussi Home, Batch, Database, Report, Norme e sui controlli principali della pagina Scoring
 - copertura Report in E2E: generazione PDF singolo verificata; per il batch ZIP è verificata la raggiungibilità del controllo UI, non il tempo di completamento end-to-end

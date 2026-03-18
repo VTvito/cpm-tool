@@ -77,5 +77,6 @@ In Streamlit ≥ 1.55, use `width='stretch'` instead of `use_container_width=Tru
 - Single PDF generation + batch ZIP generation for all subjects.
 
 ### Norme (Page 5)
-- CSV norms upload/download/reset. Uses `on_click` callbacks for upload and reset actions.
+- Excel-first workflow: download template Excel → compile → upload `.xlsx/.xls` (auto-converted to CSV) or `.csv` directly.
+- `on_click` callbacks for upload (`_on_upload_norms`) and reset (`_on_reset_norms`) actions.
 - Keep reset controls always rendered and disable them when not applicable.

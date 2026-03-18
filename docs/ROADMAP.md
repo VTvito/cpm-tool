@@ -10,7 +10,7 @@ percentili con norme CSV, grafici interattivi, database SQLite locale, report PD
 UI refactored (2026-03-18): design system accademico pulito, sidebar navy con navigazione
 completa, token CSS `--c-*`, home page con hero + banner workflow.
 
-Qualità verificata con 47 test standard + smoke/E2E browser separati sui flussi principali di tutte le pagine.
+Qualità verificata con 49 test standard + smoke/E2E browser separati sui flussi principali di tutte le pagine.
 
 Valutazione complessiva: **9 / 10**
 

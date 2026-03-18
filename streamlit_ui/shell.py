@@ -239,15 +239,27 @@ def _inject_styles() -> None:
             border-color: var(--c-primary-l);
         }
 
-        /* Fix: testo pulsanti non deve ereditare colore muted da regola p{} */
+        /* Fix: testo pulsanti primari — bianco esplicito per non ereditare muted */
         .stFormSubmitButton button p,
-        .stButton > button p,
-        .stDownloadButton > button p,
+        .stFormSubmitButton button *,
         .stButton > button[kind="primary"] p,
         .stButton > button[kind="primary"] *,
         .stDownloadButton > button[kind="primary"] p,
-        .stDownloadButton > button[kind="primary"] * {
-            color: inherit !important;
+        .stDownloadButton > button[kind="primary"] *,
+        button[data-testid="stBaseButton-primary"] p,
+        button[data-testid="stBaseButton-primary"] *,
+        button[data-testid="stBaseButton-primaryFormSubmit"] p,
+        button[data-testid="stBaseButton-primaryFormSubmit"] * {
+            color: #ffffff !important;
+            font-size: inherit !important;
+        }
+
+        /* Fix: testo pulsanti secondari — usa colore ink standard */
+        .stButton > button:not([kind="primary"]) p,
+        .stButton > button:not([kind="primary"]) *,
+        .stDownloadButton > button:not([kind="primary"]) p,
+        .stDownloadButton > button:not([kind="primary"]) * {
+            color: var(--c-ink) !important;
             font-size: inherit !important;
         }
 

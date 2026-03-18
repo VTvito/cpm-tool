@@ -10,7 +10,7 @@ Language: Italian UI, Italian code comments, English code identifiers.
 
 | Component | Technology | Version Notes |
 |-----------|------------|---------------|
-| Framework | Streamlit | ≥ 1.30, multi-page via `pages/` directory |
+| Framework | Streamlit | ≥ 1.55, multi-page via `pages/` directory |
 | Charts | Plotly | Interactive; kaleido for PNG export to PDF |
 | PDF | fpdf2 | Helvetica only — **no Unicode** (use `_sanitize()`) |
 | Database | SQLite | Single-file at `data/sessions.db` |
@@ -35,11 +35,11 @@ pages/                  # Streamlit pages (auto-discovered)
   2_📊_Batch.py         # CSV/Excel batch scoring
   3_🗄️_Database.py      # Database viewer/export/backup/restore
   4_📄_Report.py        # PDF report generator (single + batch ZIP)
-  5_📏_Norme.py         # Normative tables viewer + CSV norms management
+  5_📏_Norme.py         # Normative tables viewer + Excel/CSV upload and management
 data/                   # Runtime data (gitignored)
   norms_template.csv    # CSV template for norms input
 tests/                  # Tests
-  test_core.py          # pytest unit tests for core/ (47 tests)
+  test_core.py          # pytest unit tests for core/ (49 tests)
   test_playwright.py    # Playwright E2E tests
 ```
 
@@ -112,6 +112,9 @@ python -m venv .venv
 pip install -r requirements.txt
 streamlit run app.py
 ```
+
+> **Streamlit Cloud deploy**: `packages.txt` lists Linux apt packages required for kaleido
+> (`libgbm1`, `libnss3`, `libatk-bridge2.0-0`). No comments allowed in `packages.txt`.
 
 ## Testing
 

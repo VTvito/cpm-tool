@@ -4,7 +4,7 @@ Questa applicazione aiuta a gestire lo scoring CPM in modo semplice, locale e ad
 
 ## Da dove iniziare
 
-1. Se devi usare percentili reali, apri **📏 Norme** e carica il file CSV con i valori del manuale.
+1. Se devi usare percentili reali, apri **📏 Norme** e carica il file Excel (o CSV) con i valori del manuale.
 2. Per un singolo soggetto usa **📝 Scoring**.
 3. Per una classe, un campione o un dataset usa **📊 Batch**.
 4. Salva i risultati nel database per ritrovarli e generare i PDF in seguito.
@@ -38,7 +38,8 @@ Questa applicazione aiuta a gestire lo scoring CPM in modo semplice, locale e ad
 
 ### 📏 Norme
 - Controlla se il tool sta usando valori di esempio o norme personalizzate.
-- Carica il CSV del manuale seguendo il template fornito.
+- Carica il file Excel (o CSV) del manuale seguendo il template fornito.
+- Scarica il template Excel per compilarlo offline, poi ricaricalo.
 - Usa il calcolatore rapido per un controllo veloce di punteggio e percentile.
 
 ## Note importanti
