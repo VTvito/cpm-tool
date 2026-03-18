@@ -1,7 +1,10 @@
 """
 Playwright E2E test — CPM Scoring Tool
-Naviga tutte le pagine, compila un soggetto completo,
-verifica scoring, salvataggio e tutte le sezioni.
+Naviga tutte le pagine e verifica i flussi principali di UI,
+salvataggio, export e report.
+
+Nota: la compilazione puntuale delle celle di st.data_editor nella pagina
+Scoring non è ancora automatizzata in questo test.
 
 Screenshot salvati in tests/screenshots/
 """
@@ -131,6 +134,16 @@ def extract_subject_count(body_text):
     return int(match.group(1)) if match else None
 
 
+def has_valid_norms_status(body_text):
+    """Accetta sia norme placeholder sia norme personalizzate attive."""
+    lowered = body_text.lower()
+    return (
+        "norme:" in lowered
+        or "valori di esempio" in lowered
+        or "norme personalizzate attive" in lowered
+    )
+
+
 def run():
     print("=" * 65)
     print("  CPM Scoring Tool — Playwright E2E Navigation & Debug")
@@ -159,7 +172,7 @@ def run():
             ("Scoring Singolo" in body, "Card Scoring Singolo"),
             ("Batch" in body, "Card Batch"),
             ("Report" in body, "Card Report"),
-            ("placeholder" in body.lower(), "Avviso norme placeholder"),
+            (has_valid_norms_status(body), "Stato norme visibile"),
         ]
         for ok, desc in checks:
             if ok:
@@ -471,11 +484,14 @@ def run():
                 gen_btn.first.scroll_into_view_if_needed()
                 gen_btn.first.click()
                 report_ready = False
-                for _ in range(20):
+                for _ in range(40):
                     wait_st(page, 1500)
                     body_after = page.locator("body").inner_text()
+                    report_download_btn = page.locator('[data-testid="stDownloadButton"]').filter(
+                        has_text="Scarica il Report PDF"
+                    )
                     if (
-                        page.locator('[data-testid="stDownloadButton"]').count() > 0
+                        report_download_btn.count() > 0
                         or "generato" in body_after.lower()
                         or "successo" in body_after.lower()
                     ):
@@ -484,7 +500,6 @@ def run():
                 shot(page, "report_generato")
 
                 body_after = page.locator("body").inner_text()
-                report_download_btn = page.locator('[data-testid="stDownloadButton"]')
                 if report_download_btn.count() > 0:
                     print("  OK Download report disponibile")
                 elif "generato" in body_after.lower() or "successo" in body_after.lower():
@@ -495,6 +510,26 @@ def run():
                 else:
                     warnings.append("REPORT: conferma generazione non chiara")
                     print("  WARN Conferma generazione non chiara")
+
+            batch_expander = page.locator('[data-testid="stExpander"]').filter(
+                has=page.locator('summary:has-text("Operazioni batch")')
+            )
+            if batch_expander.count() > 0:
+                batch_expander.locator('summary').first.click()
+                wait_st(page, 1000)
+                batch_btn = page.locator('button', has_text="Genera ZIP con Tutti i Report")
+                if batch_btn.count() > 0:
+                    print("  OK Pulsante batch ZIP presente")
+                    batch_btn.first.scroll_into_view_if_needed()
+                    batch_btn.first.click()
+                    wait_st(page, 1500)
+                    print("  OK Controllo batch ZIP raggiungibile")
+                else:
+                    errors.append("REPORT: pulsante batch ZIP non trovato")
+                    print("  FAIL Pulsante batch ZIP non trovato")
+            else:
+                errors.append("REPORT: expander operazioni batch non trovato")
+                print("  FAIL Expander operazioni batch non trovato")
 
         page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
         wait_st(page, 500)

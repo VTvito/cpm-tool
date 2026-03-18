@@ -221,23 +221,23 @@ def _on_generate_batch_zip():
     st.session_state["rpt_batch_count"] = count
 
 
-    st.button(
-        "📦 Genera ZIP con Tutti i Report",
-        type="secondary",
-        key="rpt_btn_batch",
-        on_click=_on_generate_batch_zip,
-        disabled=not subjects,
+st.button(
+    "📦 Genera ZIP con Tutti i Report",
+    type="secondary",
+    key="rpt_btn_batch",
+    on_click=_on_generate_batch_zip,
+    disabled=not subjects,
+    width="stretch",
+)
+
+if st.session_state.get("rpt_batch_zip"):
+    count = st.session_state.get("rpt_batch_count", 0)
+    st.success(f"✅ {count} report generati!")
+    st.download_button(
+        f"⬇️ Scarica ZIP ({count} report)",
+        data=st.session_state["rpt_batch_zip"],
+        file_name="CPM_Report_Tutti.zip",
+        mime="application/zip",
         width="stretch",
     )
-
-    if st.session_state.get("rpt_batch_zip"):
-        count = st.session_state.get("rpt_batch_count", 0)
-        st.success(f"✅ {count} report generati!")
-        st.download_button(
-            f"⬇️ Scarica ZIP ({count} report)",
-            data=st.session_state["rpt_batch_zip"],
-            file_name="CPM_Report_Tutti.zip",
-            mime="application/zip",
-            width="stretch",
-        )
-        st.caption("Usa il file ZIP per archiviazione, revisione con il team o stampa in blocco.")
+    st.caption("Usa il file ZIP per archiviazione, revisione con il team o stampa in blocco.")

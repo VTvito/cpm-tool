@@ -7,7 +7,7 @@ Versione documento: 2026-03-18
 Il tool copre il workflow CPM completo: inserimento risposte, scoring singolo e batch,
 percentili con norme CSV, grafici interattivi, database SQLite locale, report PDF.
 
-Qualità verificata con 47 unit test + E2E Playwright su tutte le pagine.
+Qualità verificata con 47 unit test + E2E Playwright sui flussi principali di tutte le pagine.
 
 Valutazione complessiva: **8.5 / 10**
 
@@ -113,11 +113,10 @@ Interventi per consolidare e ampliare il valore del tool.
 
 ## Note sul deploy
 
-Il progetto è stato rilasciato su **Streamlit Community Cloud**.
-
-**Limitazione attuale**: il database SQLite è effimero su Streamlit Cloud —
-i dati si perdono quando l'app va in sleep o viene riavviata.
+Se il progetto viene pubblicato su **Streamlit Community Cloud** o ambienti equivalenti,
+il database SQLite locale resta effimero: i dati si perdono quando l'app va in sleep
+o viene riavviata.
 Per persistenza dati in produzione, valutare la migrazione a DB esterno (vedi 3.3).
 
-I dati inseriti tramite i test E2E (Playwright) sono locali alla macchina di sviluppo
-e non si propagano all'istanza cloud.
+I dati inseriti tramite i test E2E (Playwright) restano locali alla macchina di sviluppo
+e non si propagano automaticamente a eventuali istanze deployate.

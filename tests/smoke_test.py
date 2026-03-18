@@ -1,4 +1,4 @@
-"""Quick smoke test: verify all pages load with the new features."""
+"""Quick smoke test: verify all pages load and the main Report batch control is reachable."""
 import socket
 
 import pytest
@@ -57,7 +57,11 @@ with sync_playwright() as p:
     page.wait_for_timeout(4000)
     header = page.locator("h2").first.text_content()
     print(f"Report header: {header}")
-    batch_btn = page.locator('button:has-text("Genera ZIP")').count()
+    report_expanders = page.locator('[data-testid="stExpander"] summary')
+    if report_expanders.count() > 0:
+        report_expanders.first.click()
+        page.wait_for_timeout(500)
+    batch_btn = page.locator('button:has-text("Genera ZIP con Tutti i Report")').count()
     print(f"Batch ZIP button: {batch_btn}")
 
     browser.close()

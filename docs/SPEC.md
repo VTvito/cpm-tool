@@ -89,7 +89,9 @@ tests/               pytest + Playwright
 ## Qualità attuale verificata
 
 - unit test `pytest`: 47 passati
-- E2E Playwright: passati sui flussi Home, Scoring, Batch, Database, Report, Norme
+- E2E Playwright: passati sui flussi Home, Batch, Database, Report, Norme e sui controlli principali della pagina Scoring
+- copertura Report in E2E: generazione PDF singolo verificata; per il batch ZIP è verificata la raggiungibilità del controllo UI, non il tempo di completamento end-to-end
+- limite noto E2E: la compilazione cella-per-cella dei 3 `st.data_editor` in Scoring non è ancora automatizzata; il test verifica presenza griglie, callback e stato UI principale
 - startup Streamlit verificato
 
 ## Fuori scope attuale
