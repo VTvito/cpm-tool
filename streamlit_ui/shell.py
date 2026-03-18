@@ -61,18 +61,33 @@ def _inject_styles() -> None:
             font-family: Georgia, "Times New Roman", serif;
             color: var(--c-ink);
             letter-spacing: -0.022em;
+            overflow: visible !important;
+            white-space: normal !important;
+            line-height: 1.4 !important;
         }
 
-        h1 { font-size: 2.2rem; line-height: 1.2; }
+        h1 { font-size: 2.2rem; }
         h2 { font-size: 1.55rem; }
         h3 { font-size: 1.18rem; }
 
+        /* Heading containers: mai troncare */
+        div[data-testid="stHeading"],
+        div[data-testid="stHeadingWithActionElements"] {
+            overflow: visible !important;
+            white-space: normal !important;
+        }
+
         p,
-        div[data-testid="stCaptionContainer"] p,
         .stMarkdown p,
         label[data-testid="stWidgetLabel"] {
             color: var(--c-muted) !important;
             font-size: 0.94rem;
+        }
+
+        /* Caption: contrasto WCAG-AA (#1a2d3a su bianco — ratio ~12:1) */
+        div[data-testid="stCaptionContainer"] p {
+            color: #1a2d3a !important;
+            font-size: 0.88rem !important;
         }
 
         /* ─── Sidebar ────────────────────────────────────────── */
@@ -381,14 +396,14 @@ def _inject_styles() -> None:
         }
 
         /* ─── Caption: contrasto migliorato ──────────────────── */
-        div[data-testid="stCaptionContainer"] p {
-            color: #3d5a6e !important;
-        }
+        /* (spostato in Typography — questa sezione reserved) */
 
         /* ─── Heading anchor: visibile solo su hover ─────────── */
         [data-testid="stHeaderActionElements"] {
             opacity: 0;
             transition: opacity 0.2s;
+            display: inline-flex !important;
+            vertical-align: middle;
         }
 
         .stHeading:hover [data-testid="stHeaderActionElements"] {
@@ -401,24 +416,44 @@ def _inject_styles() -> None:
         }
 
         /* ─── Localizzazione testo file uploader ─────────────── */
-        div[data-testid="stFileUploaderDropzoneInstructions"] > div > span:first-child {
+        /* Testo principale (drag & drop) */
+        div[data-testid="stFileUploaderDropzoneInstructions"] div > span:first-child {
             font-size: 0 !important;
+            line-height: 0;
+            color: transparent !important;
         }
-
-        div[data-testid="stFileUploaderDropzoneInstructions"] > div > span:first-child::after {
-            content: "Trascina il file qui oppure clicca per selezionare";
+        div[data-testid="stFileUploaderDropzoneInstructions"] div > span:first-child::after {
+            content: "Trascina il file qui oppure clicca";
             font-size: 0.875rem;
-            color: inherit;
+            line-height: 1.4;
+            display: inline;
+            color: var(--c-ink);
         }
-
-        div[data-testid="stFileUploaderDropzoneInstructions"] > div > span:last-child {
+        /* Testo limite dimensione */
+        div[data-testid="stFileUploaderDropzoneInstructions"] div > span:last-child {
+            font-size: 0 !important;
+            line-height: 0;
+            color: transparent !important;
+        }
+        div[data-testid="stFileUploaderDropzoneInstructions"] div > span:last-child::after {
+            content: "Limite 200 MB per file \2022 CSV, XLSX, XLS";
+            font-size: 0.75rem;
+            line-height: 1.4;
+            display: inline;
+            color: var(--c-muted);
+        }
+        /* Pulsante Browse files \2192 Sfoglia file */
+        div[data-testid="stFileUploader"] button[data-testid="stBaseButton-secondary"],
+        div[data-testid="stFileUploader"] button[data-testid="stBaseButton-secondary"] * {
+            color: transparent !important;
             font-size: 0 !important;
         }
-
-        div[data-testid="stFileUploaderDropzoneInstructions"] > div > span:last-child::after {
-            content: "Limite 5\00a0MB per file \2022 CSV, XLSX, XLS";
-            font-size: 0.75rem;
-            color: inherit;
+        div[data-testid="stFileUploader"] button[data-testid="stBaseButton-secondary"]::after {
+            content: "Sfoglia file";
+            color: var(--c-ink);
+            font-size: 0.875rem;
+            font-weight: 600;
+            display: inline;
         }
         </style>
         """,
