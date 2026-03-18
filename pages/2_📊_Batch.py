@@ -180,12 +180,15 @@ for item in all_items:
     example_row[item] = ANSWER_KEY[item]  # risposte tutte corrette come esempio
 template_df = pd.concat([template_df, pd.DataFrame([example_row])], ignore_index=True)
 
-csv_template = template_df.to_csv(index=False).encode("utf-8")
+_tmpl_buf = io.BytesIO()
+with pd.ExcelWriter(_tmpl_buf, engine="openpyxl") as _w:
+    template_df.to_excel(_w, index=False, sheet_name="Batch CPM")
 st.download_button(
-    "⬇️ Scarica Template CSV",
-    data=csv_template,
-    file_name="CPM_BatchTemplate.csv",
-    mime="text/csv",
+    "⬇️ Scarica Template Excel",
+    data=_tmpl_buf.getvalue(),
+    file_name="CPM_BatchTemplate.xlsx",
+    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    type="primary",
 )
 
 st.divider()
@@ -196,7 +199,7 @@ st.divider()
 st.subheader("2️⃣  Carica il File Compilato")
 
 uploaded = st.file_uploader(
-    "Scegli un file CSV o Excel",
+    "Scegli un file Excel o CSV",
     type=["csv", "xlsx", "xls"],
     help="Il file deve avere le stesse colonne del template scaricato.",
     key="batch_uploaded",
