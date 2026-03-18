@@ -1,8 +1,8 @@
 """
 Pagina 5 – Tabelle Normative
 
-Consultazione interattiva delle norme CPM per fascia d'età.
-Include caricamento norme da file CSV per utenti non tecnici.
+Modifica diretta della tabella norme nell'interfaccia (no CSV richiesto).
+Il caricamento/esportazione CSV è disponibile come operazione secondaria.
 """
 
 import streamlit as st
@@ -19,9 +19,39 @@ from streamlit_ui import configure_page
 
 configure_page("Norme CPM", "📏")
 
+_PERC_OPTIONS = ["<5", "5", "10", "25", "50", "75", "90", "95", ">95"]
+
+
+def _build_norm_df() -> pd.DataFrame:
+    return pd.DataFrame(get_norm_table_as_dicts())
+
+
+def _on_save_from_editor():
+    """Serializza il DataFrame dell'editor e salva come CSV."""
+    df = st.session_state.get("norm_edited_values")
+    if df is None or df.empty:
+        st.session_state["norm_upload_error"] = "Nessun dato da salvare."
+        st.session_state.pop("norm_upload_ok", None)
+        return
+    age_cols = [c for c in df.columns if c != "Punteggio Grezzo"]
+    if df[age_cols].isnull().any().any():
+        st.session_state["norm_upload_error"] = (
+            "Alcune celle sono ancora vuote. Seleziona un valore in ogni cella prima di salvare."
+        )
+        st.session_state.pop("norm_upload_ok", None)
+        return
+    csv_bytes = df.to_csv(index=False).encode("utf-8-sig")
+    msg = save_norms_csv(csv_bytes)
+    if msg.startswith("Errore"):
+        st.session_state["norm_upload_error"] = msg
+        st.session_state.pop("norm_upload_ok", None)
+    else:
+        st.session_state["norm_upload_ok"] = msg
+        st.session_state.pop("norm_upload_error", None)
+
 
 def _on_upload_norms():
-    """Callback: salva il CSV norme caricato dall'utente."""
+    """Salva il CSV caricato dall'utente."""
     uploaded = st.session_state.get("norm_csv_upload")
     if uploaded is None:
         return
@@ -36,109 +66,159 @@ def _on_upload_norms():
 
 
 def _on_reset_norms():
-    """Callback: elimina il CSV norme personalizzato, torna ai placeholder."""
+    """Elimina il CSV personalizzato e torna ai placeholder."""
     csv_path = get_norms_csv_path()
     if csv_path.is_file():
         csv_path.unlink()
-    st.session_state["norm_upload_ok"] = "Norme ripristinate ai valori placeholder di esempio."
+    st.session_state["norm_upload_ok"] = "Norme ripristinate ai valori di esempio."
     st.session_state.pop("norm_upload_error", None)
 
 
+# ─────────────────────────────────────────
+#  HEADER + STATUS
+# ─────────────────────────────────────────
 st.header("📏 Tabelle Normative CPM")
 
-# ── Stato norme: banner visibile direttamente in pagina ──────
 using_placeholder = is_using_placeholder()
 if using_placeholder:
     st.warning(
         "**Norme di esempio attive** — i percentili mostrati sono valori fittizi. "
-        "Usa il pannello qui sotto per caricare le norme reali (Belacchi et al., 2008).",
+        "Modifica la tabella qui sotto e premi **Salva norme** per attivare i dati reali "
+        "(Belacchi et al., 2008).",
         icon="⚠️",
     )
 else:
-    st.success("**Norme personalizzate attive** — percentili calcolati dal file CSV caricato.", icon="✅")
-
-norms_panel_open = (
-    using_placeholder
-    or st.session_state.get("norm_csv_upload") is not None
-    or bool(st.session_state.get("norm_upload_error"))
-    or bool(st.session_state.get("norm_upload_ok"))
-)
-
-# ─────────────────────────────────────────
-#  CARICAMENTO NORME DA CSV
-# ─────────────────────────────────────────
-with st.expander("📂 Carica / Gestisci Norme", expanded=norms_panel_open):
-    st.caption(
-        "Scarica il template, compila con i valori del manuale (Belacchi et al., 2008) e ricaricalo. "
-        "Formato: prima colonna = Punteggio Grezzo (0-36); "
-        "colonne successive = percentile per fascia d'eta (es. Eta 7, Adulti, Anziani)."
+    st.success(
+        "**Norme personalizzate attive** — percentili calcolati dalla tabella salvata.",
+        icon="✅",
     )
 
-    # Download template
+# ─────────────────────────────────────────
+#  TABELLA NORME — EDITING DIRETTO
+# ─────────────────────────────────────────
+st.subheader("✏️ Tabella Norme")
+st.caption(
+    "Clicca su una cella per selezionare il percentile corrispondente. "
+    "La colonna **P. Grezzo** non è modificabile. "
+    "Premi **Salva norme** per rendere effettive le modifiche."
+)
+
+norm_df = _build_norm_df()
+age_cols = [c for c in norm_df.columns if c != "Punteggio Grezzo"]
+
+column_config: dict = {
+    "Punteggio Grezzo": st.column_config.NumberColumn(
+        "P. Grezzo",
+        disabled=True,
+        width="small",
+        help="Punteggio totale CPM (0–36). Non modificabile.",
+    ),
+}
+for col in age_cols:
+    column_config[col] = st.column_config.SelectboxColumn(
+        col,
+        options=_PERC_OPTIONS,
+        required=True,
+        width="small",
+    )
+
+edited_df = st.data_editor(
+    norm_df,
+    column_config=column_config,
+    num_rows="fixed",
+    hide_index=True,
+    key="norm_editor",
+)
+# Persisti il DataFrame modificato per la callback (pattern data_editor)
+st.session_state["norm_edited_values"] = edited_df
+
+# Messaggi di feedback
+if st.session_state.get("norm_upload_error"):
+    st.error(f"❌ {st.session_state['norm_upload_error']}")
+if st.session_state.get("norm_upload_ok"):
+    st.success(f"✅ {st.session_state['norm_upload_ok']}")
+
+btn_c1, btn_c2, _ = st.columns([1, 2, 3])
+with btn_c1:
+    st.button(
+        "💾 Salva norme",
+        type="primary",
+        on_click=_on_save_from_editor,
+        width="stretch",
+    )
+with btn_c2:
+    st.button(
+        "🔄 Ripristina valori di esempio",
+        on_click=_on_reset_norms,
+        disabled=using_placeholder,
+        help="Cancella le norme personalizzate e torna ai valori placeholder.",
+    )
+
+# ─────────────────────────────────────────
+#  CSV: IMPORTA / ESPORTA (secondario)
+# ─────────────────────────────────────────
+with st.expander("🗂️ Importa / Esporta CSV", expanded=False):
+    st.caption(
+        "Usa questa sezione se preferisci compilare le norme in Excel e importarle, "
+        "oppure per fare un backup/ripristino del file corrente."
+    )
+
+    dl_c1, dl_c2 = st.columns(2)
+
+    # Template CSV (con BOM per apertura corretta in Excel)
     template_path = Path(__file__).resolve().parent.parent / "data" / "norms_template.csv"
     if template_path.is_file():
-        st.download_button(
-            "⬇️ Scarica Template CSV",
-            data=template_path.read_bytes(),
-            file_name="CPM_Norme_Template.csv",
-            mime="text/csv",
-        )
+        raw_bytes = template_path.read_bytes()
+        bom = b"\xef\xbb\xbf"
+        template_bytes = raw_bytes if raw_bytes.startswith(bom) else bom + raw_bytes
+        with dl_c1:
+            st.download_button(
+                "⬇️ Template CSV (vuoto)",
+                data=template_bytes,
+                file_name="CPM_Norme_Template.csv",
+                mime="text/csv; charset=utf-8",
+                help="Apri con Excel, compila i valori dal manuale, salva come CSV e ricarica qui sotto.",
+            )
 
-    # Download norme attuali (se personalizzate)
+    # Norme attuali
     csv_path = get_norms_csv_path()
     if csv_path.is_file():
-        st.download_button(
-            "⬇️ Scarica Norme Attuali (CSV)",
-            data=csv_path.read_bytes(),
-            file_name="CPM_Norme_Attuali.csv",
-            mime="text/csv",
-        )
+        raw_saved = csv_path.read_bytes()
+        bom = b"\xef\xbb\xbf"
+        saved_bytes = raw_saved if raw_saved.startswith(bom) else bom + raw_saved
+        with dl_c2:
+            st.download_button(
+                "⬇️ Norme attuali (CSV)",
+                data=saved_bytes,
+                file_name="CPM_Norme_Attuali.csv",
+                mime="text/csv; charset=utf-8",
+            )
 
     st.divider()
-
-    # Upload
     st.file_uploader(
-        "Carica file CSV con le norme",
+        "Carica CSV con le norme",
         type=["csv"],
-           help="Il file deve avere la colonna Punteggio Grezzo e una o più colonne età riconoscibili "
-               "dal nome header, ad esempio Età 7, Adulti, Anziani.",
+        help=(
+            "Formato: prima colonna = Punteggio Grezzo (intero); "
+            "colonne successive = percentile per fascia d'età (es. Età 7, Adulti, Anziani). "
+            "Valori percentile accettati: <5 · 5 · 10 · 25 · 50 · 75 · 90 · 95 · >95."
+        ),
         key="norm_csv_upload",
     )
     st.button(
-        "📤 Carica e Applica Norme",
+        "📤 Applica CSV caricato",
         type="primary",
         on_click=_on_upload_norms,
         disabled=st.session_state.get("norm_csv_upload") is None,
     )
 
-    st.divider()
-    st.button(
-        "🔄 Ripristina Norme Placeholder",
-        on_click=_on_reset_norms,
-        help="Rimuove il file norme personalizzato e torna ai valori di esempio.",
-        disabled=using_placeholder,
-    )
-
-    if st.session_state.get("norm_upload_error"):
-        st.error(f"❌ {st.session_state['norm_upload_error']}")
-
-    if st.session_state.get("norm_upload_ok"):
-        st.success(f"✅ {st.session_state['norm_upload_ok']}")
-
 st.divider()
-
-norm_data = get_norm_table_as_dicts()
-df = pd.DataFrame(norm_data)
-age_cols_available = [c for c in df.columns if c.startswith("Età ")]
-bands_calc = [col.replace("Età ", "") for col in age_cols_available]
 
 # ─────────────────────────────────────────
 #  CALCOLATORE RAPIDO
 # ─────────────────────────────────────────
 st.subheader("🔢 Calcolatore Rapido")
-st.caption(
-    "Inserisci un punteggio grezzo e una fascia d'età per ottenere subito il percentile."
-)
+st.caption("Inserisci punteggio grezzo e fascia d'età per ottenere subito il percentile.")
 
 q1, q2 = st.columns(2)
 with q1:
@@ -148,11 +228,8 @@ with q1:
         key="norm_raw",
     )
 with q2:
-    band = st.selectbox(
-        "Fascia d'Età",
-        options=bands_calc if bands_calc else AGE_BANDS[:9],
-        key="norm_band",
-    )
+    bands_calc = [col.replace("Età ", "") for col in age_cols] if age_cols else AGE_BANDS[:9]
+    band = st.selectbox("Fascia d'Età", options=bands_calc, key="norm_band")
 
 pct = lookup_percentile(raw, band)
 desc = describe_percentile(pct)
@@ -165,52 +242,8 @@ c3.metric("Classificazione", desc)
 st.divider()
 
 # ─────────────────────────────────────────
-#  TABELLA NORMATIVA
-# ─────────────────────────────────────────
-st.subheader("📊 Tabella Punteggio Grezzo → Percentile")
-
-# Colori per i percentili
-def color_percentile(val):
-    if val in ("<5", "5"):
-        return "background-color: #FADBD8"
-    elif val in ("10", "25"):
-        return "background-color: #FDEBD0"
-    elif val == "50":
-        return "background-color: #D5F5E3"
-    elif val in ("75", "90"):
-        return "background-color: #D6EAF8"
-    elif val in ("95", ">95"):
-        return "background-color: #D2B4DE"
-    return ""
-
-with st.expander("📄 Consulta la tabella completa", expanded=False):
-    st.caption("Puoi filtrare per fascia d'età per una lettura più pulita:")
-    selected_bands = st.multiselect(
-        "Mostra fasce d'età",
-        options=age_cols_available,
-        default=age_cols_available,
-        key="norm_filter",
-    )
-
-    cols_to_show = ["Punteggio Grezzo"] + selected_bands
-    available_cols = [c for c in cols_to_show if c in df.columns]
-    df_filtered = df[available_cols]
-
-    styled = df_filtered.style.map(
-        color_percentile,
-        subset=[c for c in available_cols if c != "Punteggio Grezzo"],
-    )
-
-    st.dataframe(
-        styled,
-        width="stretch",
-        height=min(600, 50 + 35 * len(df_filtered)),
-    )
-
-# ─────────────────────────────────────────
 #  LEGENDA
 # ─────────────────────────────────────────
-st.divider()
 st.subheader("📋 Legenda Bande di Prestazione")
 
 legend = [
