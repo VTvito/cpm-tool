@@ -11,8 +11,11 @@ Screenshot salvati in tests/screenshots/
 
 import csv
 import re
+import socket
 import sys
 from pathlib import Path
+
+import pytest
 from playwright.sync_api import sync_playwright
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -24,6 +27,14 @@ from core.database import get_all_subjects
 BASE_URL = "http://localhost:8501"
 SCREENSHOTS = Path(__file__).parent / "screenshots"
 SCREENSHOTS.mkdir(exist_ok=True)
+
+
+def _is_server_up(host: str = "localhost", port: int = 8501) -> bool:
+    try:
+        with socket.create_connection((host, port), timeout=1):
+            return True
+    except OSError:
+        return False
 
 # Risposte test: A tutto corretto (12), Ab 11/12, B 11/12 => totale 34
 TEST_RESPONSES = {
@@ -125,6 +136,19 @@ def build_batch_csv() -> Path:
         writer = csv.DictWriter(fh, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(BATCH_ROWS)
+    return csv_path
+
+
+def build_norms_csv() -> Path:
+    """Create a temporary norms CSV with a subset of age-band columns."""
+    csv_path = SCREENSHOTS / "norms_e2e_input.csv"
+    csv_path.write_text(
+        "Punteggio Grezzo,Età 7,Adulti,Anziani\n"
+        "0,<5,10,25\n"
+        "20,50,75,90\n"
+        "36,>95,>95,>95\n",
+        encoding="utf-8",
+    )
     return csv_path
 
 
@@ -572,6 +596,41 @@ def run():
             warnings.append("NORME: sezione gestione norme non trovata")
             print("  WARN Sezione gestione norme non trovata")
 
+        if norms_expander.count() > 0:
+            uploader = page.locator('[data-testid="stFileUploader"] input[type="file"]')
+            if uploader.count() == 0 or not uploader.first.is_visible():
+                norms_expander.first.locator('summary').click()
+                wait_st(page, 800)
+            norms_csv = build_norms_csv()
+            if uploader.count() > 0:
+                uploader.first.set_input_files(str(norms_csv))
+                wait_st(page, 1000)
+                upload_btn = page.locator('button', has_text="Carica e Applica Norme")
+                if upload_btn.count() > 0 and upload_btn.first.is_visible():
+                    upload_btn.first.scroll_into_view_if_needed()
+                    upload_btn.first.click()
+                    wait_st(page, 2000)
+                    options = get_selectbox_options(page, "Fascia d'Età")
+                    expected_options = ["7", "Adulti", "Anziani"]
+                    if options == expected_options:
+                        print("  OK Bande età allineate al CSV caricato")
+                    else:
+                        errors.append(
+                            f"NORME: opzioni fascia età non allineate al CSV ({options})"
+                        )
+                        print(f"  FAIL Bande età non allineate: {options}")
+
+                    reset_btn = page.locator('button', has_text="Ripristina Norme Placeholder")
+                    if reset_btn.count() > 0:
+                        reset_btn.first.click()
+                        wait_st(page, 1200)
+                else:
+                    errors.append("NORME: pulsante upload norme non trovato")
+                    print("  FAIL Pulsante upload norme non trovato")
+            else:
+                errors.append("NORME: file uploader norme non trovato")
+                print("  FAIL File uploader norme non trovato")
+
         page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
         wait_st(page, 500)
         shot(page, "norme_legenda")
@@ -603,5 +662,14 @@ def run():
 
 
 if __name__ == "__main__":
+    if not _is_server_up():
+        raise SystemExit("Playwright E2E richiede Streamlit attivo su localhost:8501.")
     errs = run()
     sys.exit(1 if errs else 0)
+
+
+def test_playwright_e2e_navigation() -> None:
+    if not _is_server_up():
+        pytest.skip("Playwright E2E richiede Streamlit attivo su localhost:8501.")
+    errs = run()
+    assert not errs

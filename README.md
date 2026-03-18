@@ -60,6 +60,8 @@ Suite completa:
 python -m pytest -q
 ```
 
+Nota: la suite `pytest` raccoglie anche smoke test ed E2E browser. Se Streamlit non è attivo su `localhost:8501`, questi test vengono saltati automaticamente.
+
 E2E:
 
 ```bash
@@ -80,4 +82,5 @@ python tests/smoke_test.py
 - Nessuna autenticazione o multi-utente
 - Dati salvati in `data/sessions.db`
 - PDF con font Helvetica: testo sanitizzato ASCII
+- Stato norme mostrato in sidebar; la pagina Norme serve per gestione CSV e consultazione
 - `tests/smoke_test.py` è pensato come controllo live rapido con server attivo su `localhost:8501`

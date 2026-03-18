@@ -25,6 +25,40 @@ def _build_editor_dataframe(set_key: str) -> pd.DataFrame:
     })
 
 
+def _ensure_editor_dataframe(set_key: str) -> pd.DataFrame:
+    values_key = f"resp_values_{set_key}"
+    current = st.session_state.get(values_key)
+    if isinstance(current, pd.DataFrame):
+        return current.copy()
+
+    df = _build_editor_dataframe(set_key)
+    st.session_state[values_key] = df.copy()
+    return df
+
+
+def _sync_editor_values(set_key: str):
+    """Sincronizza il valore persistito del data_editor dal widget state raw."""
+    values_key = f"resp_values_{set_key}"
+    widget_key = f"resp_editor_{set_key}"
+    current_df = _ensure_editor_dataframe(set_key)
+    widget_state = st.session_state.get(widget_key)
+
+    if isinstance(widget_state, pd.DataFrame):
+        st.session_state[values_key] = widget_state.copy()
+        return
+
+    if not isinstance(widget_state, dict):
+        return
+
+    updated_df = current_df.copy()
+    for row_idx, changes in widget_state.get("edited_rows", {}).items():
+        if "Risposta" not in changes:
+            continue
+        updated_df.at[int(row_idx), "Risposta"] = changes["Risposta"]
+
+    st.session_state[values_key] = updated_df
+
+
 # ─────────────────────────────────────────
 #  CALLBACKS (eseguiti PRIMA del rerun)
 # ─────────────────────────────────────────
@@ -198,11 +232,12 @@ for col_ui, (set_label, set_key, color) in zip(columns_ui, set_configs):
             f'{set_label}</div>',
             unsafe_allow_html=True,
         )
-        # Costruisci il DataFrame per il data_editor
-        df_data = st.session_state.get(f"resp_values_{set_key}", _build_editor_dataframe(set_key))
+        df_data = _ensure_editor_dataframe(set_key)
         edited_df = st.data_editor(
             df_data,
             key=f"resp_editor_{set_key}",
+            on_change=_sync_editor_values,
+            args=(set_key,),
             column_config={
                 "Item": st.column_config.TextColumn(
                     "Item", disabled=True, width="small",
@@ -271,12 +306,7 @@ if st.session_state.get("calc_error"):
 
 if "save_msg" in st.session_state:
     st.toast(st.session_state["save_msg"], icon="✅")
-    st.success(f"✅ {st.session_state['save_msg']}")
-    next_col1, next_col2 = st.columns(2)
-    with next_col1:
-        st.page_link("pages/3_🗄️_Database.py", label="Apri Database", icon="🗄️")
-    with next_col2:
-        st.page_link("pages/4_📄_Report.py", label="Vai ai Report", icon="📄")
+    st.caption(st.session_state["save_msg"])
 
 # ─────────────────────────────────────────
 #  RISULTATI
@@ -295,7 +325,7 @@ if "last_result" in st.session_state:
         summary_bits.append(f"discrepanza {result.discrepancy_flag}")
     else:
         summary_bits.append("discrepanza assente o nei limiti")
-    st.success("Risultato principale: " + " • ".join(summary_bits))
+    st.info("Risultato principale: " + " • ".join(summary_bits))
 
     r1, r2, r3, r4 = st.columns(4)
     r1.metric("Set A", f"{result.set_a_score} / 12")
@@ -370,4 +400,4 @@ if "last_result" in st.session_state:
             key="btn_pdf",
         )
     except Exception as e:
-        st.caption(f"⚠️ PDF: {e}")
+        st.warning(f"PDF non disponibile: {e}")

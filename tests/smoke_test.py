@@ -13,56 +13,60 @@ def _is_server_up(host: str = "localhost", port: int = 8501) -> bool:
         return False
 
 
-if not _is_server_up():
-    pytest.skip("Smoke test richiede Streamlit attivo su localhost:8501.", allow_module_level=True)
+def run_smoke() -> None:
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
 
-with sync_playwright() as p:
-    browser = p.chromium.launch(headless=True)
-    page = browser.new_page()
+        page.goto("http://localhost:8501/")
+        page.wait_for_timeout(4000)
+        title = page.locator("h1").first.text_content()
+        print(f"Homepage: {title}")
 
-    # Test homepage
-    page.goto("http://localhost:8501/")
-    page.wait_for_timeout(4000)
-    title = page.locator("h1").first.text_content()
-    print(f"Homepage: {title}")
+        page_links = page.locator('[data-testid="stPageLink"]').count()
+        print(f"Page links found: {page_links}")
 
-    # Check navigation links exist
-    page_links = page.locator('[data-testid="stPageLink"]').count()
-    print(f"Page links found: {page_links}")
+        page.goto("http://localhost:8501/Scoring")
+        page.wait_for_timeout(4000)
+        header = page.locator("h2").first.text_content()
+        print(f"Scoring header: {header}")
+        editors = page.locator('[data-testid="stDataFrame"]').count()
+        print(f"Data editors: {editors}")
 
-    # Test Scoring page
-    page.goto("http://localhost:8501/Scoring")
-    page.wait_for_timeout(4000)
-    header = page.locator("h2").first.text_content()
-    print(f"Scoring header: {header}")
-    editors = page.locator('[data-testid="stDataFrame"]').count()
-    print(f"Data editors: {editors}")
+        page.goto("http://localhost:8501/Norme")
+        page.wait_for_timeout(4000)
+        header = page.locator("h2").first.text_content()
+        print(f"Norme header: {header}")
+        uploader = page.locator('[data-testid="stFileUploader"]').count()
+        print(f"File uploader: {uploader}")
 
-    # Test Norme page
-    page.goto("http://localhost:8501/Norme")
-    page.wait_for_timeout(4000)
-    header = page.locator("h2").first.text_content()
-    print(f"Norme header: {header}")
-    uploader = page.locator('[data-testid="stFileUploader"]').count()
-    print(f"File uploader: {uploader}")
+        page.goto("http://localhost:8501/Database")
+        page.wait_for_timeout(4000)
+        header = page.locator("h2").first.text_content()
+        print(f"Database header: {header}")
 
-    # Test Database page
-    page.goto("http://localhost:8501/Database")
-    page.wait_for_timeout(4000)
-    header = page.locator("h2").first.text_content()
-    print(f"Database header: {header}")
+        page.goto("http://localhost:8501/Report")
+        page.wait_for_timeout(4000)
+        header = page.locator("h2").first.text_content()
+        print(f"Report header: {header}")
+        report_expanders = page.locator('[data-testid="stExpander"] summary')
+        if report_expanders.count() > 0:
+            report_expanders.first.click()
+            page.wait_for_timeout(500)
+        batch_btn = page.locator('button:has-text("Genera ZIP con Tutti i Report")').count()
+        print(f"Batch ZIP button: {batch_btn}")
 
-    # Test Report page
-    page.goto("http://localhost:8501/Report")
-    page.wait_for_timeout(4000)
-    header = page.locator("h2").first.text_content()
-    print(f"Report header: {header}")
-    report_expanders = page.locator('[data-testid="stExpander"] summary')
-    if report_expanders.count() > 0:
-        report_expanders.first.click()
-        page.wait_for_timeout(500)
-    batch_btn = page.locator('button:has-text("Genera ZIP con Tutti i Report")').count()
-    print(f"Batch ZIP button: {batch_btn}")
+        browser.close()
+        print("\nALL PAGES LOADED OK")
 
-    browser.close()
-    print("\nALL PAGES LOADED OK")
+
+def test_smoke_all_pages_load() -> None:
+    if not _is_server_up():
+        pytest.skip("Smoke test richiede Streamlit attivo su localhost:8501.")
+    run_smoke()
+
+
+if __name__ == "__main__":
+    if not _is_server_up():
+        raise SystemExit("Smoke test richiede Streamlit attivo su localhost:8501.")
+    run_smoke()

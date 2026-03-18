@@ -88,7 +88,7 @@ def _build_batch_results(df: pd.DataFrame, all_items: list[str]) -> tuple[list[t
         rows_out.append({
             "Nome": result.nome,
             "Cognome": result.cognome,
-            "Età": result.age_band,
+            "Fascia Età": result.age_band,
             "Set A": result.set_a_score,
             "Set Ab": result.set_ab_score,
             "Set B": result.set_b_score,
@@ -264,7 +264,6 @@ if st.session_state.get("batch_error"):
 
 if st.session_state.get("batch_save_msg"):
     st.success(f"✅ {st.session_state['batch_save_msg']}")
-    st.page_link("pages/3_🗄️_Database.py", label="Apri Database", icon="🗄️")
 
 results_df = st.session_state.get("batch_results_df")
 if results_df is not None:

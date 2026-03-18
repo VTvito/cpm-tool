@@ -13,7 +13,6 @@ from core.norms import (
     AGE_BANDS, get_norm_table_as_dicts,
     lookup_percentile, describe_percentile,
     is_using_placeholder, save_norms_csv, get_norms_csv_path,
-    load_norm_table,
 )
 
 
@@ -42,25 +41,10 @@ def _on_reset_norms():
 
 
 st.header("📏 Tabelle Normative CPM")
+st.caption("Lo stato corrente delle norme è mostrato nella sidebar. Qui puoi caricare, scaricare o ripristinare il CSV usato dal tool.")
 
 # ── STATO NORME ───────────────────────────
 using_placeholder = is_using_placeholder()
-
-if using_placeholder:
-    st.warning(
-        "⚠️ **ATTENZIONE**: Le norme attualmente in uso sono **valori di esempio**. "
-        "Prima di qualsiasi utilizzo clinico o di ricerca, è **obbligatorio** "
-        "caricare i valori dal manuale ufficiale usando la sezione qui sotto.\n\n"
-        "📖 Riferimento: Belacchi C., Scalisi T.G., Cannoni E., Cornoldi C. (2008). "
-        "*CPM – Coloured Progressive Matrices*. OS Firenze.",
-        icon="⚠️",
-    )
-else:
-    st.success(
-        "✅ **Norme personalizzate caricate.** "
-        "I percentili vengono calcolati usando il file norme caricato.",
-        icon="✅",
-    )
 
 # ─────────────────────────────────────────
 #  CARICAMENTO NORME DA CSV
@@ -73,7 +57,8 @@ with st.expander("📂 Carica / Gestisci Norme dal Manuale", expanded=using_plac
         "3. **Sostituisci i valori** con quelli del manuale, mantenendo il formato\n"
         "4. **Salva come CSV** e caricalo qui\n\n"
         "Il formato è: prima colonna = Punteggio Grezzo, "
-        "colonne successive = percentile per ogni fascia d'età."
+        "colonne successive = percentile per ogni fascia d'età. "
+        "Sono supportate le colonne Età 3–11 e, se presenti, Adulti e Anziani."
     )
 
     # Download template
@@ -102,8 +87,8 @@ with st.expander("📂 Carica / Gestisci Norme dal Manuale", expanded=using_plac
     st.file_uploader(
         "Carica file CSV con le norme",
         type=["csv"],
-        help="Il file deve avere le stesse colonne del template: "
-             "Punteggio Grezzo, Età 3, Età 4, …, Età 11",
+           help="Il file deve avere la colonna Punteggio Grezzo e una o più colonne età riconoscibili "
+               "dal nome header, ad esempio Età 7, Adulti, Anziani.",
         key="norm_csv_upload",
     )
     st.button(
@@ -129,6 +114,11 @@ with st.expander("📂 Carica / Gestisci Norme dal Manuale", expanded=using_plac
 
 st.divider()
 
+norm_data = get_norm_table_as_dicts()
+df = pd.DataFrame(norm_data)
+age_cols_available = [c for c in df.columns if c.startswith("Età ")]
+bands_calc = [col.replace("Età ", "") for col in age_cols_available]
+
 # ─────────────────────────────────────────
 #  CALCOLATORE RAPIDO
 # ─────────────────────────────────────────
@@ -136,11 +126,6 @@ st.subheader("🔢 Calcolatore Rapido")
 st.caption(
     "Inserisci un punteggio grezzo e una fascia d'età per ottenere subito il percentile."
 )
-
-# Determina le bande disponibili in base alla tabella caricata
-table = load_norm_table()
-n_cols = len(table[0]) - 1 if table else 0
-bands_calc = AGE_BANDS[:n_cols]
 
 q1, q2 = st.columns(2)
 with q1:
@@ -171,9 +156,6 @@ st.divider()
 # ─────────────────────────────────────────
 st.subheader("📊 Tabella Punteggio Grezzo → Percentile")
 
-norm_data = get_norm_table_as_dicts()
-df = pd.DataFrame(norm_data)
-
 # Colori per i percentili
 def color_percentile(val):
     if val in ("<5", "5"):
@@ -187,9 +169,6 @@ def color_percentile(val):
     elif val in ("95", ">95"):
         return "background-color: #D2B4DE"
     return ""
-
-# Rileva le colonne età disponibili nel dataframe
-age_cols_available = [c for c in df.columns if c.startswith("Età ")]
 
 with st.expander("📄 Consulta la tabella completa", expanded=False):
     st.caption("Puoi filtrare per fascia d'età per una lettura più pulita:")

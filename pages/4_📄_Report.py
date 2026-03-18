@@ -28,6 +28,12 @@ def _display_value(value) -> str:
     return str(value) if value not in (None, "") else "–"
 
 
+def _display_percentile(result) -> str:
+    if not result.age_band or result.percentile == "–":
+        return "Non disponibile"
+    return f"{result.percentile} — {result.description}"
+
+
 def _clear_report_pdf_state():
     for key in ["rpt_pdf_bytes", "rpt_pdf_name", "rpt_pdf_warning", "rpt_pdf_success"]:
         st.session_state.pop(key, None)
@@ -54,8 +60,8 @@ def _on_generate_report_pdf():
     except Exception:
         chart_imgs = None
         warning_message = (
-            "I grafici non sono stati inclusi nel PDF. "
-            "Per includerli, installa il pacchetto `kaleido`: `pip install kaleido`"
+            "PDF generato senza grafici. "
+            "Per includerli, installa il pacchetto kaleido nell'ambiente dell'app."
         )
 
     pdf_bytes = generate_pdf(result, chart_imgs)
@@ -125,7 +131,7 @@ with c2:
     r3, r4 = st.columns(2)
     r3.metric("Set B", f"{result.set_b_score}/12")
     r4.metric("TOTALE", f"{result.total_raw}/36")
-    st.metric("Percentile", f"{result.percentile} — {result.description}")
+    st.metric("Percentile", _display_percentile(result))
 
 # Grafici anteprima
 g1, g2 = st.columns(2)
@@ -172,18 +178,7 @@ if st.session_state.get("rpt_pdf_bytes"):
     )
 
 if st.session_state.get("rpt_pdf_success"):
-    st.success(f"✅ {st.session_state['rpt_pdf_success']}")
-
-# ─────────────────────────────────────────
-#  GENERAZIONE BATCH (ZIP multi-PDF)
-# ─────────────────────────────────────────
-st.divider()
-with st.expander("📦 Operazioni batch", expanded=False):
-    st.subheader("Genera Report per Tutti i Soggetti")
-    st.caption(
-        "Genera un file ZIP contenente un report PDF per ogni soggetto nel database. "
-        "Utile per archiviazione o stampa in blocco."
-    )
+    st.success("✅ Report pronto per il download.")
 
 
 def _on_generate_batch_zip():
@@ -211,7 +206,6 @@ def _on_generate_batch_zip():
 
             pdf_bytes = generate_pdf(result, chart_imgs)
             filename = _safe_report_filename(result.nome, result.cognome)
-            # Evita nomi duplicati nel ZIP
             base = filename.rsplit(".", 1)[0]
             filename = f"{base}_ID{subj['id']}.pdf"
             zf.writestr(filename, pdf_bytes)
@@ -220,24 +214,36 @@ def _on_generate_batch_zip():
     st.session_state["rpt_batch_zip"] = zip_buffer.getvalue()
     st.session_state["rpt_batch_count"] = count
 
+# ─────────────────────────────────────────
+#  GENERAZIONE BATCH (ZIP multi-PDF)
+# ─────────────────────────────────────────
+st.divider()
+with st.expander("📦 Operazioni batch", expanded=False):
+    st.subheader("Genera Report per Tutti i Soggetti")
+    st.caption(
+        "Genera un file ZIP contenente un report PDF per ogni soggetto nel database. "
+        "Utile per archiviazione o stampa in blocco. La generazione può richiedere alcuni secondi."
+    )
 
-st.button(
-    "📦 Genera ZIP con Tutti i Report",
-    type="secondary",
-    key="rpt_btn_batch",
-    on_click=_on_generate_batch_zip,
-    disabled=not subjects,
-    width="stretch",
-)
-
-if st.session_state.get("rpt_batch_zip"):
-    count = st.session_state.get("rpt_batch_count", 0)
-    st.success(f"✅ {count} report generati!")
-    st.download_button(
-        f"⬇️ Scarica ZIP ({count} report)",
-        data=st.session_state["rpt_batch_zip"],
-        file_name="CPM_Report_Tutti.zip",
-        mime="application/zip",
+    st.button(
+        "📦 Genera ZIP con Tutti i Report",
+        type="secondary",
+        key="rpt_btn_batch",
+        on_click=_on_generate_batch_zip,
+        disabled=not subjects,
         width="stretch",
     )
-    st.caption("Usa il file ZIP per archiviazione, revisione con il team o stampa in blocco.")
+
+    if st.session_state.get("rpt_batch_zip"):
+        count = st.session_state.get("rpt_batch_count", 0)
+        st.success(f"✅ {count} report pronti per il download.")
+        st.download_button(
+            f"⬇️ Scarica ZIP ({count} report)",
+            data=st.session_state["rpt_batch_zip"],
+            file_name="CPM_Report_Tutti.zip",
+            mime="application/zip",
+            width="stretch",
+        )
+        st.caption("Usa il file ZIP per archiviazione, revisione con il team o stampa in blocco.")
+
+
