@@ -45,11 +45,17 @@ st.caption("Lo stato corrente delle norme è mostrato nella sidebar. Qui puoi ca
 
 # ── STATO NORME ───────────────────────────
 using_placeholder = is_using_placeholder()
+norms_panel_open = (
+    using_placeholder
+    or st.session_state.get("norm_csv_upload") is not None
+    or bool(st.session_state.get("norm_upload_error"))
+    or bool(st.session_state.get("norm_upload_ok"))
+)
 
 # ─────────────────────────────────────────
 #  CARICAMENTO NORME DA CSV
 # ─────────────────────────────────────────
-with st.expander("📂 Carica / Gestisci Norme dal Manuale", expanded=using_placeholder):
+with st.expander("📂 Carica / Gestisci Norme dal Manuale", expanded=norms_panel_open):
     st.markdown(
         "Per caricare le norme dal manuale Belacchi et al. (2008):\n\n"
         "1. **Scarica il template CSV** qui sotto\n"

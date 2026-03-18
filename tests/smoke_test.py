@@ -16,7 +16,8 @@ def _is_server_up(host: str = "localhost", port: int = 8501) -> bool:
 def run_smoke() -> None:
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
-        page = browser.new_page()
+        context = browser.new_context()
+        page = context.new_page()
 
         page.goto("http://localhost:8501/")
         page.wait_for_timeout(4000)
@@ -56,6 +57,8 @@ def run_smoke() -> None:
         batch_btn = page.locator('button:has-text("Genera ZIP con Tutti i Report")').count()
         print(f"Batch ZIP button: {batch_btn}")
 
+        page.close()
+        context.close()
         browser.close()
         print("\nALL PAGES LOADED OK")
 

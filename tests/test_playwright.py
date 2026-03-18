@@ -606,6 +606,10 @@ def run():
                 uploader.first.set_input_files(str(norms_csv))
                 wait_st(page, 1000)
                 upload_btn = page.locator('button', has_text="Carica e Applica Norme")
+                if upload_btn.count() > 0 and not upload_btn.first.is_visible():
+                    norms_expander.first.locator('summary').click()
+                    wait_st(page, 800)
+                    upload_btn = page.locator('button', has_text="Carica e Applica Norme")
                 if upload_btn.count() > 0 and upload_btn.first.is_visible():
                     upload_btn.first.scroll_into_view_if_needed()
                     upload_btn.first.click()
@@ -656,6 +660,8 @@ def run():
                     print(f"    ! {w}")
 
         print("=" * 65)
+        page.close()
+        ctx.close()
         browser.close()
 
     return errors
