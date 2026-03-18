@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environment
+.venv/
+venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Streamlit cache
+.streamlit/secrets.toml
+
+# Data (DB contiene dati soggetti — non versionare)
+data/sessions.db
+
+# Test artifacts
+tests/screenshots/
+test_report.pdf
+
+# Debug artifacts
+data/_*debug*.txt
+data/_*marker*.txt
