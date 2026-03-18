@@ -28,7 +28,7 @@ def _inject_styles() -> None:
             --c-border:      #c8d5e0;
             --c-border-l:    #dce6ee;
             --c-ink:         #0e1d2a;
-            --c-muted:       #4c6475;
+            --c-muted:       #2d4555;
             --c-primary:     #1a4f72;
             --c-primary-h:   #0e3451;
             --c-primary-l:   #2874a6;
@@ -44,6 +44,12 @@ def _inject_styles() -> None:
         }
 
         /* ─── Base ───────────────────────────────────────────── */
+        /* Nascondi header sticky Streamlit (copre i titoli) e barra colore */
+        header[data-testid="stHeader"],
+        div[data-testid="stDecoration"] {
+            display: none !important;
+        }
+
         .stApp {
             background: var(--c-bg);
             color: var(--c-ink);
@@ -52,7 +58,7 @@ def _inject_styles() -> None:
 
         .block-container {
             max-width: 1320px;
-            padding-top: 0.75rem;
+            padding-top: 1.8rem;
             padding-bottom: 2rem;
         }
 
@@ -436,7 +442,7 @@ def _inject_styles() -> None:
             color: transparent !important;
         }
         div[data-testid="stFileUploaderDropzoneInstructions"] div > span:last-child::after {
-            content: "Limite 200 MB per file \2022 CSV, XLSX, XLS";
+            content: "Limite 200 MB per file \u2022 CSV, XLSX, XLS";
             font-size: 0.75rem;
             line-height: 1.4;
             display: inline;
