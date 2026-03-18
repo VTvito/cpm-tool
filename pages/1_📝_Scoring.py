@@ -41,19 +41,22 @@ def _filled_response_count() -> int:
 
 
 def _render_set_inputs(set_label: str, set_key: str):
-    st.markdown(f'<div class="cpm-set-title">{set_label}</div>', unsafe_allow_html=True)
-    for item in SETS[set_key]:
-        label_col, input_col = st.columns([0.8, 1.2])
-        with label_col:
-            st.markdown(f'<div class="cpm-item-label">{item}</div>', unsafe_allow_html=True)
-        with input_col:
-            st.text_input(
-                f"Risposta {item}",
-                key=_response_key(item),
-                max_chars=1,
-                placeholder="1-6",
-                label_visibility="collapsed",
-            )
+    with st.container(border=True):
+        st.markdown(f'<div class="cpm-set-title">{set_label}</div>', unsafe_allow_html=True)
+        items = SETS[set_key]
+        for row_start in range(0, len(items), 4):
+            row_items = items[row_start:row_start + 4]
+            row_cols = st.columns(4, gap="small")
+            for col_ui, item in zip(row_cols, row_items):
+                with col_ui:
+                    st.markdown(f'<div class="cpm-item-label">{item}</div>', unsafe_allow_html=True)
+                    st.text_input(
+                        f"Risposta {item}",
+                        key=_response_key(item),
+                        max_chars=1,
+                        placeholder="1-6",
+                        label_visibility="collapsed",
+                    )
 
 
 # ─────────────────────────────────────────
@@ -196,8 +199,9 @@ with st.expander("👤 Dati del Soggetto", expanded=True):
 st.subheader("📋 Risposte ai 36 Item")
 st.markdown(
     '<div class="cpm-response-help">'
-    'Digita un valore da 1 a 6 e usa Tab per passare rapidamente al campo successivo. '
-    'Per ridurre ritardi e vibrazioni della pagina, i valori vengono letti quando premi Calcola Score.'
+    'Digita un valore da 1 a 6. Usa <span class="cpm-kbd">Tab</span> per avanzare e '
+    '<span class="cpm-kbd">Shift</span> + <span class="cpm-kbd">Tab</span> per tornare indietro. '
+    'Il calcolo parte solo quando premi Calcola Score, cosi la compilazione resta fluida.'
     '</div>',
     unsafe_allow_html=True,
 )
@@ -225,7 +229,10 @@ with st.form("scoring_response_form", clear_on_submit=False):
 # ─────────────────────────────────────────
 st.divider()
 
-st.caption(f"Valori registrati nell'ultimo calcolo: **{_filled_response_count()}** / 36")
+st.markdown(
+    f'<div class="cpm-scoring-toolbar">Item compilati: <strong>{_filled_response_count()}</strong> / 36</div>',
+    unsafe_allow_html=True,
+)
 
 with st.expander("📝 Note / Osservazioni opzionali", expanded=False):
     st.text_area(
