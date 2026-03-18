@@ -237,9 +237,29 @@ st.divider()
 #  EXPORT
 # ─────────────────────────────────────────
 st.subheader("📥 Esporta Dati")
-col_e1, col_e2, col_e3 = st.columns(3)
 
-with col_e1:
+# Helper: costruisce il DataFrame anonimizzato (riusato per CSV ed Excel)
+def _anon_df(src: pd.DataFrame) -> pd.DataFrame:
+    df_a = src.copy()
+    if "Nome" in df_a.columns:
+        df_a["Nome"] = [f"S{i+1:03d}" for i in range(len(df_a))]
+    if "Cognome" in df_a.columns:
+        df_a["Cognome"] = ""
+    if "Esaminatore" in df_a.columns:
+        df_a["Esaminatore"] = "–"
+    if "Note" in df_a.columns:
+        df_a["Note"] = ""
+    return df_a
+
+_anon_help = (
+    "Esporta i dati con codici soggetto (S001, S002, ...) al posto dei nomi. "
+    "Utile per condivisione dati nel rispetto della privacy."
+)
+
+# ── Riga 1: export completo ──────────────
+row1_c1, row1_c2 = st.columns(2)
+
+with row1_c1:
     csv_data = df_display[available].to_csv(index=False).encode("utf-8-sig")
     st.download_button(
         "⬇️ Scarica CSV",
@@ -249,7 +269,7 @@ with col_e1:
         width="stretch",
     )
 
-with col_e2:
+with row1_c2:
     buf = io.BytesIO()
     with pd.ExcelWriter(buf, engine="openpyxl") as writer:
         df_display[available].to_excel(writer, index=False, sheet_name="Database CPM")
@@ -261,26 +281,31 @@ with col_e2:
         width="stretch",
     )
 
-with col_e3:
-    # Export anonimizzato — sostituisce nomi con codici S001, S002, ...
-    df_anon = df_display[available].copy()
-    if "Nome" in df_anon.columns:
-        df_anon["Nome"] = [f"S{i+1:03d}" for i in range(len(df_anon))]
-    if "Cognome" in df_anon.columns:
-        df_anon["Cognome"] = ""
-    if "Esaminatore" in df_anon.columns:
-        df_anon["Esaminatore"] = "–"
-    if "Note" in df_anon.columns:
-        df_anon["Note"] = ""
-    csv_anon = df_anon.to_csv(index=False).encode("utf-8-sig")
+# ── Riga 2: export anonimizzato ──────────
+row2_c1, row2_c2 = st.columns(2)
+
+with row2_c1:
+    csv_anon = _anon_df(df_display[available]).to_csv(index=False).encode("utf-8-sig")
     st.download_button(
-        "🔒 Export Anonimizzato (CSV)",
+        "🔒 Anonimizzato (CSV)",
         data=csv_anon,
         file_name="CPM_Database_Anonimo.csv",
         mime="text/csv",
         width="stretch",
-        help="Esporta i dati con codici soggetto (S001, S002, ...) al posto dei nomi. "
-             "Utile per condivisione dati nel rispetto della privacy.",
+        help=_anon_help,
+    )
+
+with row2_c2:
+    buf_anon = io.BytesIO()
+    with pd.ExcelWriter(buf_anon, engine="openpyxl") as writer:
+        _anon_df(df_display[available]).to_excel(writer, index=False, sheet_name="Database CPM Anonimo")
+    st.download_button(
+        "🔒 Anonimizzato (Excel)",
+        data=buf_anon.getvalue(),
+        file_name="CPM_Database_Anonimo.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        width="stretch",
+        help=_anon_help,
     )
 
 # ─────────────────────────────────────────
