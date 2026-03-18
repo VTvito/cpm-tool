@@ -43,6 +43,7 @@ Prima di uso clinico o di ricerca, caricare le norme ufficiali dal manuale di ri
 
 - `docs/SPEC.md`: specifica corrente, ridotta e allineata al codice
 - `docs/GUIDA.md`: guida utente in linguaggio semplice
+- `docs/ROADMAP.md`: roadmap evolutiva con cicli di miglioramento pianificati
 - `.github/copilot-instructions.md`: regole di sviluppo condivise
 
 ## Test

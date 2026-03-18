@@ -97,6 +97,8 @@ tests/               pytest + Playwright
 - confronto longitudinale tra soggetti
 - supporto SPM/APM
 
+Per la lista completa delle evoluzioni pianificate, vedere `docs/ROADMAP.md`.
+
 ## Riferimenti
 
 - Belacchi C., Scalisi T.G., Cannoni E., Cornoldi C. (2008). CPM – Coloured Progressive Matrices. OS Firenze.
