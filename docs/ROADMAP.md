@@ -10,6 +10,10 @@ percentili con norme CSV, grafici interattivi, database SQLite locale, report PD
 UI refactored (2026-03-18): design system accademico pulito, sidebar navy con navigazione
 completa, token CSS `--c-*`, home page con hero + banner workflow.
 
+Deploy su Streamlit Cloud attivo (2026-03-18): auto-seed 15 soggetti demo al cold start
+(DB vuoto), fix `sys.path` per compatibilità cloud, CSV export con BOM per Excel,
+template batch in formato Excel.
+
 Qualità verificata con 49 test standard + smoke/E2E browser separati sui flussi principali di tutte le pagine.
 
 Valutazione complessiva: **9 / 10**

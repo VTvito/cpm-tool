@@ -189,21 +189,35 @@ st.dataframe(
     width="stretch",
     height=min(500, 50 + 35 * len(df_display)),
     column_config={
-        "Set A": st.column_config.ProgressColumn(
-            "Set A", min_value=0, max_value=12, format="%d/12"),
-        "Set Ab": st.column_config.ProgressColumn(
-            "Set Ab", min_value=0, max_value=12, format="%d/12"),
-        "Set B": st.column_config.ProgressColumn(
-            "Set B", min_value=0, max_value=12, format="%d/12"),
         "Totale": st.column_config.ProgressColumn(
             "Totale", min_value=0, max_value=36, format="%d/36"),
+        "Descrizione": st.column_config.TextColumn("Descrizione", width="large"),
+        "Data Inserimento": st.column_config.TextColumn("Data Inserimento", width="medium"),
     },
 )
 
 with st.expander("📄 Mostra colonne aggiuntive", expanded=False):
-    extra_cols = [c for c in ["Sesso", "Esaminatore", "Set A", "Set Ab", "Set B", "Note"] if c in df_display.columns]
+    extra_cols = [
+        c for c in ["Data Nascita", "Data Somm.", "Sesso", "Esaminatore",
+                    "Set A", "Set Ab", "Set B", "Note"]
+        if c in df_display.columns
+    ]
     if extra_cols:
-        st.dataframe(df_display[["ID", "Cognome", "Nome", *extra_cols]], width="stretch", height=min(400, 50 + 35 * len(df_display)))
+        st.dataframe(
+            df_display[["ID", "Cognome", "Nome", *extra_cols]],
+            width="stretch",
+            height=min(400, 50 + 35 * len(df_display)),
+            column_config={
+                "Set A": st.column_config.ProgressColumn(
+                    "Set A", min_value=0, max_value=12, format="%d/12"),
+                "Set Ab": st.column_config.ProgressColumn(
+                    "Set Ab", min_value=0, max_value=12, format="%d/12"),
+                "Set B": st.column_config.ProgressColumn(
+                    "Set B", min_value=0, max_value=12, format="%d/12"),
+                "Esaminatore": st.column_config.TextColumn("Esaminatore", width="medium"),
+                "Note": st.column_config.TextColumn("Note", width="large"),
+            },
+        )
 
 # ─────────────────────────────────────────
 #  STATISTICHE

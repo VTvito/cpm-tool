@@ -29,7 +29,8 @@ core/                   # Pure logic — no Streamlit imports
   scoring.py            # ScoringResult dataclass + scoring + discrepancy index
   charts.py             # Plotly chart builders
   pdf_report.py         # A4 PDF generation with fpdf2
-  database.py           # SQLite CRUD
+  database.py           # SQLite CRUD + is_db_empty()
+  seed_demo.py          # Auto-seeds 15 demo subjects on first run (empty DB)
 pages/                  # Streamlit pages (auto-discovered)
   1_📝_Scoring.py       # Single subject scoring (text input grid)
   2_📊_Batch.py         # CSV/Excel batch scoring
@@ -37,7 +38,6 @@ pages/                  # Streamlit pages (auto-discovered)
   4_📄_Report.py        # PDF report generator (single + batch ZIP)
   5_📏_Norme.py         # Normative tables viewer + Excel/CSV upload and management
 data/                   # Runtime data (gitignored)
-  norms_template.csv    # CSV template for norms input
 tests/                  # Tests
   test_core.py          # pytest unit tests for core/ (49 tests)
   test_playwright.py    # Playwright E2E tests

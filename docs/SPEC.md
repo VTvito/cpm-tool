@@ -28,7 +28,7 @@ Target principale:
 
 ### 2. Batch scoring
 - input CSV o Excel
-- template CSV scaricabile
+- template Excel scaricabile (`.xlsx`)
 - validazione colonne item
 - normalizzazione risposte e date
 - risultati tabellari con export CSV/Excel
@@ -60,6 +60,14 @@ Target principale:
 - home con navigazione a link (3+2) con descrizioni per ciascuna pagina + banner workflow
 - stato norme (placeholder/personalizzate) nella sidebar globale
 - sidebar con navigazione completa verso tutte le pagine, sempre visibile su desktop (`initial_sidebar_state="auto"`)
+
+### 7. Demo e deploy cloud
+- `core/seed_demo.py`: popola il DB con 15 soggetti demo (fasce 5-11, score variati,
+  2 casi con indice di discrepanza) alla prima sessione utente se il DB è vuoto
+- `seed_if_empty()` è idempotente: non sovrascrive dati reali già presenti
+- `streamlit_ui/shell.py` e `app.py` inseriscono la root del progetto in `sys.path`
+  per compatibilità con Streamlit Cloud (CWD non garantito = root progetto)
+- CSV export con BOM UTF-8 (`utf-8-sig`) per apertura corretta in Excel su Windows
 
 ## Vincoli operativi
 
@@ -102,7 +110,7 @@ tests/               pytest + Playwright
 - copertura Report in E2E: generazione PDF singolo verificata; per il batch ZIP è verificata la raggiungibilità del controllo UI, non il tempo di completamento end-to-end
 - l'E2E della pagina Scoring verifica anche la stabilità dei valori digitati nei campi risposta prima del calcolo
 - shell UI condiviso e import multipagina verificati dopo il refactor nel package `streamlit_ui`
-- startup Streamlit verificato
+- startup Streamlit verificato e deploy su Streamlit Cloud funzionante
 
 ## Fuori scope attuale
 
