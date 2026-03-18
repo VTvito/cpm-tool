@@ -6,7 +6,7 @@ applyTo: "tests/**/*.py"
 
 ## Unit Tests (pytest)
 
-File: `tests/test_core.py` — 47 tests covering all `core/` modules.
+File: `tests/test_core.py` — 49 tests covering all `core/` modules.
 
 ### Running
 ```bash

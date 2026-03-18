@@ -619,11 +619,11 @@ def run():
             if uploader.count() > 0:
                 uploader.first.set_input_files(str(norms_csv))
                 wait_st(page, 1000)
-                upload_btn = page.locator('button', has_text="Carica e Applica Norme")
+                upload_btn = page.locator('button', has_text="Applica norme")
                 if upload_btn.count() > 0 and not upload_btn.first.is_visible():
                     norms_expander.first.locator('summary').click()
                     wait_st(page, 800)
-                    upload_btn = page.locator('button', has_text="Carica e Applica Norme")
+                    upload_btn = page.locator('button', has_text="Applica norme")
                 if upload_btn.count() > 0 and upload_btn.first.is_visible():
                     upload_btn.first.scroll_into_view_if_needed()
                     upload_btn.first.click()
@@ -638,7 +638,7 @@ def run():
                         )
                         print(f"  FAIL Bande età non allineate: {options}")
 
-                    reset_btn = page.locator('button', has_text="Ripristina Norme Placeholder")
+                    reset_btn = page.locator('button', has_text="Ripristina valori di esempio")
                     if reset_btn.count() > 0:
                         reset_btn.first.click()
                         wait_st(page, 1200)
