@@ -5,7 +5,13 @@ Applicazione Streamlit per lo scoring automatico.
 Avvia con:  streamlit run app.py
 """
 
+import sys
 from pathlib import Path
+
+# Safety net: aggiunge la root a sys.path se non già presente.
+_ROOT = Path(__file__).resolve().parent
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
 
 import streamlit as st
 from streamlit_ui import configure_page

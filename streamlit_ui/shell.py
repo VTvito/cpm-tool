@@ -1,5 +1,14 @@
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+# Garantisce che la root del progetto sia in sys.path su Streamlit Cloud,
+# dove il working directory potrebbe non coincidere con la cartella del progetto.
+_PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))
+
 import streamlit as st
 
 from core.norms import is_using_placeholder
