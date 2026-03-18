@@ -62,6 +62,15 @@ if "result" in st.session_state:       # Conditional DISPLAY only
     st.write(st.session_state["result"])
 ```
 
+### UX Pattern: Essential First
+
+For this project, prefer showing the essential action/result first and moving secondary details into expanders or clearly separated sections. Good examples already present in the app:
+- Scoring: main metrics first, advanced charts later
+- Database: archive/export first, maintenance actions later
+- Norme: quick calculator first, full table later
+
+When useful, add short next-step guidance after successful actions (save, upload, generate PDF).
+
 ### Scoring Page data_editor
 
 On current Streamlit versions, the raw widget state for `st.data_editor` may be a dict-like structure rather than the edited DataFrame itself.
@@ -113,6 +122,11 @@ playwright install chromium
 python tests/test_playwright.py
 ```
 The Streamlit server must be running on `localhost:8501` before running E2E tests.
+
+Optional live smoke check:
+```bash
+python tests/smoke_test.py
+```
 
 ## Conventions
 

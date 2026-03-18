@@ -48,14 +48,15 @@ Target principale:
 - testo sanitizzato ASCII per compatibilità `fpdf2` + Helvetica
 
 ### 5. Norme
-- fallback placeholder integrato
+- fallback con valori di esempio integrato
 - caricamento CSV da pagina Norme
 - mapping delle colonne età guidato dagli header CSV
-- download norme attuali e reset a placeholder
+- download norme attuali e reset ai valori di esempio
 
 ### 6. Guida utente
 - guida rapida disponibile nel file `docs/GUIDA.md`
 - stessa guida consultabile nella home dell'app
+- home con percorsi rapidi orientati ai task principali
 
 ## Vincoli operativi
 
@@ -80,6 +81,8 @@ tests/               pytest + Playwright
 - pulsanti Streamlit sempre nel widget tree, con `on_click` e `disabled`
 - nella pagina Scoring il valore utile del `st.data_editor` è il DataFrame restituito dal widget; non usare direttamente lo stato raw del widget come se fosse sempre un DataFrame
 - le norme CSV si validano prima del salvataggio e si mappano per header, non per posizione
+- progressive disclosure: tenere visibili i dati essenziali e spostare operazioni avanzate o grafici secondari in expander/sezioni dedicate
+- next-step guidance: dopo calcolo, salvataggio o upload, suggerire il passo successivo più probabile senza aprire nuove pagine automaticamente
 
 ## Qualità attuale verificata
 

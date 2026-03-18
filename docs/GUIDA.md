@@ -35,13 +35,13 @@ Questa applicazione aiuta a gestire lo scoring CPM in modo semplice, locale e ad
 - Se serve, crea uno ZIP con tutti i report.
 
 ### 📏 Norme
-- Controlla se il tool sta usando norme placeholder o personalizzate.
+- Controlla se il tool sta usando valori di esempio o norme personalizzate.
 - Carica il CSV del manuale seguendo il template fornito.
 - Usa il calcolatore rapido per un controllo veloce di punteggio e percentile.
 
 ## Note importanti
 
-- I valori placeholder non vanno usati per interpretazione clinica o ricerca finale.
+- I valori di esempio non vanno usati per interpretazione clinica o ricerca finale.
 - Il database è locale: i dati restano sulla macchina che usa il tool.
 - Il PDF usa un font standard, quindi alcuni caratteri speciali vengono semplificati automaticamente.
 

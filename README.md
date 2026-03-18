@@ -27,12 +27,12 @@ App disponibile su http://localhost:8501
 - Batch scoring da CSV/Excel con export risultati
 - Database SQLite locale con filtri, export anonimizzato, backup e restore
 - Report PDF singolo e ZIP batch
-- Gestione norme da CSV con fallback placeholder
+- Gestione norme da CSV con fallback a valori di esempio
 - Guida rapida consultabile direttamente nella home dell'app
 
 ## Norme
 
-Il progetto usa valori placeholder finché non viene caricato un file `data/norms.csv` dalla pagina Norme.
+Il progetto usa valori di esempio finché non viene caricato un file `data/norms.csv` dalla pagina Norme.
 
 Prima di uso clinico o di ricerca, caricare le norme ufficiali dal manuale di riferimento:
 
@@ -67,9 +67,16 @@ streamlit run app.py
 python tests/test_playwright.py
 ```
 
+Smoke test rapido con server attivo:
+
+```bash
+python tests/smoke_test.py
+```
+
 ## Note operative
 
 - Uso previsto: locale/offline o su rete fidata
 - Nessuna autenticazione o multi-utente
 - Dati salvati in `data/sessions.db`
 - PDF con font Helvetica: testo sanitizzato ASCII
+- `tests/smoke_test.py` è pensato come controllo live rapido con server attivo su `localhost:8501`

@@ -28,12 +28,19 @@ python -m pytest tests/test_core.py -v
 
 File: `tests/test_playwright.py` — tests run against a live Streamlit server at `http://localhost:8501`.
 
+Smoke file: `tests/smoke_test.py` — lightweight live page-load check. Intended to be run directly when a local server is already active.
+
 ### Setup
 ```bash
 pip install playwright
 playwright install chromium
 streamlit run app.py            # Run in a separate terminal; server must already be up
 python tests/test_playwright.py
+```
+
+Optional smoke run:
+```bash
+python tests/smoke_test.py
 ```
 
 ### Streamlit DOM Selectors
@@ -61,3 +68,8 @@ The Scoring page uses `st.data_editor` instead of individual selectboxes. The da
 
 ### Screenshots
 Test screenshots are saved to `tests/screenshots/` (gitignored).
+
+### Smoke Behavior
+- `tests/smoke_test.py` assumes Streamlit is already running on `localhost:8501`.
+- When collected under `pytest` without a running server, it may skip at module level.
+- Prefer running it directly as a manual smoke check rather than treating it as the main regression suite.

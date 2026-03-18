@@ -45,6 +45,12 @@ The Scoring page uses `st.data_editor` (3 grids: Set A, Ab, B) instead of 36 ind
 
 Pages import from `core/` only. Never import `streamlit` inside `core/` modules.
 
+## UX Pattern — Essential First
+
+- Keep the primary task and primary CTA visible without requiring expanders.
+- Move advanced operations, maintenance actions, or secondary charts into expanders or lower sections.
+- After successful actions, prefer short contextual next-step hints over long explanatory text.
+
 ## Deprecation: use_container_width
 
 In Streamlit ≥ 1.55, use `width='stretch'` instead of `use_container_width=True` and `width='content'` instead of `use_container_width=False`.
