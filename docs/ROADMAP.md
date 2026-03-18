@@ -16,6 +16,10 @@ template batch in formato Excel.
 
 Qualità verificata con 49 test standard + smoke/E2E browser separati sui flussi principali di tutte le pagine.
 
+File di test inclusi in `samples/`: `batch_test.csv` (6 soggetti, inclusa discrepanza) e `norms_test.csv` (8 fasce Età 5-11 + Adulti).
+
+`packages.txt` aggiornato con tutti i pacchetti apt richiesti da kaleido 1.x su Streamlit Cloud.
+
 Valutazione complessiva: **9 / 10**
 
 ---

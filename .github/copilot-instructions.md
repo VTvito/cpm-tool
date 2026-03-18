@@ -41,6 +41,9 @@ data/                   # Runtime data (gitignored)
 tests/                  # Tests
   test_core.py          # pytest unit tests for core/ (49 tests)
   test_playwright.py    # Playwright E2E tests
+samples/               # File di test pronti all'uso
+  batch_test.csv        #   6 soggetti con punteggi variati + 1 caso discrepanza
+  norms_test.csv        #   tabella norme Età 5-11 + Adulti (17 punteggi)
 ```
 
 **Separation rule**: `core/` modules must NEVER import `streamlit`. All Streamlit interactions stay in `pages/` and `app.py`.
@@ -113,8 +116,8 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-> **Streamlit Cloud deploy**: `packages.txt` lists Linux apt packages required for kaleido
-> (`libgbm1`, `libnss3`, `libatk-bridge2.0-0`). No comments allowed in `packages.txt`.
+> **Streamlit Cloud deploy**: `packages.txt` lists Linux apt packages required for kaleido 1.x
+> (`libgbm1`, `libnss3`, `libatk-bridge2.0-0`, `libasound2`, `libxss1`, `libxrandr2` — choreographer backend). No comments allowed in `packages.txt`.
 
 ## Testing
 

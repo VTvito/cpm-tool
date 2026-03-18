@@ -31,6 +31,7 @@ App disponibile su http://localhost:8501
 - Shell UI condiviso con sidebar collassata di default e contrasto migliorato
 - Guida rapida consultabile direttamente nella home dell'app
 - Auto-seed 15 soggetti demo al primo avvio con DB vuoto (adatto al deploy su Streamlit Cloud)
+- File di test in `samples/`: `batch_test.csv` e `norms_test.csv` pronti per verificare il caricamento
 
 ## Norme
 

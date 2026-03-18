@@ -68,6 +68,12 @@ Target principale:
 - `streamlit_ui/shell.py` e `app.py` inseriscono la root del progetto in `sys.path`
   per compatibilità con Streamlit Cloud (CWD non garantito = root progetto)
 - CSV export con BOM UTF-8 (`utf-8-sig`) per apertura corretta in Excel su Windows
+- `packages.txt` lista i pacchetti apt per kaleido 1.x su Linux (Streamlit Cloud):
+  `libgbm1`, `libnss3`, `libatk-bridge2.0-0`, `libasound2`, `libxss1`, `libxrandr2` — necessari al backend `choreographer` usato da kaleido ≥ 1.0
+
+### 8. File di test e campioni
+- `samples/batch_test.csv`: 6 soggetti con punteggi variati (perfetto, buono, medio, basso, molto basso, discrepanza significativa Δ=8) per test caricamento batch
+- `samples/norms_test.csv`: tabella norme con fasce Età 5-11 + Adulti, 17 righe, formato compatibile con la pagina Norme
 
 ## Vincoli operativi
 
