@@ -226,7 +226,7 @@ st.subheader("📥 Esporta Dati")
 col_e1, col_e2, col_e3 = st.columns(3)
 
 with col_e1:
-    csv_data = df_display[available].to_csv(index=False).encode("utf-8")
+    csv_data = df_display[available].to_csv(index=False).encode("utf-8-sig")
     st.download_button(
         "⬇️ Scarica CSV",
         data=csv_data,
@@ -258,7 +258,7 @@ with col_e3:
         df_anon["Esaminatore"] = "–"
     if "Note" in df_anon.columns:
         df_anon["Note"] = ""
-    csv_anon = df_anon.to_csv(index=False).encode("utf-8")
+    csv_anon = df_anon.to_csv(index=False).encode("utf-8-sig")
     st.download_button(
         "🔒 Export Anonimizzato (CSV)",
         data=csv_anon,

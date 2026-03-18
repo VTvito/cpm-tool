@@ -306,7 +306,7 @@ if results_df is not None:
     col_exp1, col_exp2 = st.columns(2)
 
     with col_exp1:
-        csv_out = results_df.to_csv(index=False).encode("utf-8")
+        csv_out = results_df.to_csv(index=False).encode("utf-8-sig")
         st.download_button(
             "⬇️ Scarica Risultati (CSV)",
             data=csv_out,
