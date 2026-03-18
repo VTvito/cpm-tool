@@ -243,13 +243,6 @@ st.caption(
     "*CPM – Coloured Progressive Matrices*. Organizzazioni Speciali, Firenze."
 )
 
-
-
-def _build_norm_df() -> pd.DataFrame:
-    return pd.DataFrame(get_norm_table_as_dicts())
-
-
-def _on_save_from_editor():
     """Serializza il DataFrame dell'editor e salva come CSV."""
     df = st.session_state.get("norm_edited_values")
     if df is None or df.empty:

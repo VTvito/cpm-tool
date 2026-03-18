@@ -239,10 +239,14 @@ def _inject_styles() -> None:
             border-color: var(--c-primary-l);
         }
 
-        /* Fix: il testo dei pulsanti non deve ereditare il colore muted dalla regola p{} */
+        /* Fix: testo pulsanti non deve ereditare colore muted da regola p{} */
         .stFormSubmitButton button p,
         .stButton > button p,
-        .stDownloadButton > button p {
+        .stDownloadButton > button p,
+        .stButton > button[kind="primary"] p,
+        .stButton > button[kind="primary"] *,
+        .stDownloadButton > button[kind="primary"] p,
+        .stDownloadButton > button[kind="primary"] * {
             color: inherit !important;
             font-size: inherit !important;
         }
