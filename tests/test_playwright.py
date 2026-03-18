@@ -18,6 +18,9 @@ from pathlib import Path
 import pytest
 from playwright.sync_api import sync_playwright
 
+
+pytestmark = pytest.mark.e2e
+
 ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
@@ -164,7 +167,9 @@ def has_valid_norms_status(body_text):
     return (
         "norme:" in lowered
         or "valori di esempio" in lowered
+        or "norme di esempio attive" in lowered
         or "norme personalizzate attive" in lowered
+        or "percentili reali" in lowered
     )
 
 
@@ -250,25 +255,37 @@ def run():
         wait_st(page, 500)
         shot(page, "scoring_anagrafica")
 
-        # Risposte — il form usa st.data_editor, non più selectbox singoli.
-        # Verifico che i 3 data_editor siano presenti nel DOM.
-        print("  -> Verifica griglia risposte (data_editor)...")
-        editors = page.locator('div[data-testid="stDataFrame"]')
+        print("  -> Verifica griglia risposte rapida...")
+        response_inputs = page.locator('input[aria-label^="Risposta "]')
         wait_st(page, 1000)
-        editor_count = editors.count()
-        if editor_count >= 3:
-            print(f"  OK {editor_count} data_editor trovati (Set A, Ab, B)")
+        response_count = response_inputs.count()
+        if response_count >= 36:
+            print(f"  OK {response_count} campi risposta trovati")
         else:
-            errors.append(f"SCORING: attesi almeno 3 data_editor, trovati {editor_count}")
-            print(f"  FAIL data_editor: {editor_count} (attesi >= 3)")
+            errors.append(f"SCORING: attesi almeno 36 campi risposta, trovati {response_count}")
+            print(f"  FAIL campi risposta: {response_count} (attesi >= 36)")
 
-        # Non compiliamo le risposte via Playwright (data_editor è complesso),
-        # verifichiamo solo che il bottone Calcola esista e che senza risposte
-        # mostri un messaggio di avviso appropriato.
-        shot(page, "scoring_data_editors")
+        shot(page, "scoring_inputs")
 
-        # Calcola (senza risposte)
-        print("  -> Click 'Calcola Score' (senza risposte)...")
+        print("  -> Compilazione rapida risposte A1/A2...")
+        input_a1 = page.locator('input[aria-label="Risposta A1"]')
+        input_a2 = page.locator('input[aria-label="Risposta A2"]')
+        input_a3 = page.locator('input[aria-label="Risposta A3"]')
+        if input_a1.count() > 0 and input_a2.count() > 0:
+            input_a1.first.fill("4")
+            input_a2.first.fill("5")
+            input_a3.first.click()
+            wait_st(page, 400)
+            if input_a1.first.input_value() == "4" and input_a2.first.input_value() == "5":
+                print("  OK Valori digitati mantengono lo stato prima del calcolo")
+            else:
+                errors.append("SCORING: i valori digitati non restano stabili nei campi")
+                print("  FAIL Valori digitati instabili nei campi")
+        else:
+            errors.append("SCORING: campi A1/A2 non trovati")
+            print("  FAIL Campi A1/A2 non trovati")
+
+        print("  -> Click 'Calcola Score'...")
         calc_btn = page.locator('button', has_text="Calcola Score")
         if calc_btn.count() > 0:
             calc_btn.first.scroll_into_view_if_needed()
@@ -282,14 +299,11 @@ def run():
 
         body = page.locator("body").inner_text()
 
-        # Senza risposte compilate, dovrebbe mostrare un messaggio di avviso
-        if "nessuna risposta" in body.lower() or "compila" in body.lower():
-            print("  OK Messaggio 'nessuna risposta' visibile (comportamento atteso)")
-        elif "Risultati" in body:
-            print("  OK Sezione Risultati visibile (risposte pre-compilate)")
+        if "Risultati" in body and "Totale" in body:
+            print("  OK Sezione Risultati visibile dopo il calcolo")
         else:
-            warnings.append("SCORING: stato post-calcola non chiaro")
-            print("  WARN Stato post-calcola non chiaro")
+            errors.append("SCORING: risultati non visibili dopo il calcolo")
+            print("  FAIL Risultati non visibili dopo il calcolo")
 
         # Verifica pulsanti azione sempre presenti
         save_btn = page.locator('button', has_text="Salva nel Database")

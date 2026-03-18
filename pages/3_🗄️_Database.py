@@ -10,6 +10,10 @@ import streamlit as st
 import pandas as pd
 
 from core.database import get_all_subjects, delete_subject, subject_to_result, init_db, DB_PATH
+from ui_shell import configure_page
+
+
+configure_page("Database Soggetti", "🗄️")
 
 init_db()
 

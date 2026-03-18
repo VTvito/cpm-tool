@@ -5,6 +5,9 @@ import pytest
 from playwright.sync_api import sync_playwright
 
 
+pytestmark = pytest.mark.smoke
+
+
 def _is_server_up(host: str = "localhost", port: int = 8501) -> bool:
     try:
         with socket.create_connection((host, port), timeout=1):
@@ -31,8 +34,8 @@ def run_smoke() -> None:
         page.wait_for_timeout(4000)
         header = page.locator("h2").first.text_content()
         print(f"Scoring header: {header}")
-        editors = page.locator('[data-testid="stDataFrame"]').count()
-        print(f"Data editors: {editors}")
+        response_inputs = page.locator('input[aria-label^="Risposta "]').count()
+        print(f"Response inputs: {response_inputs}")
 
         page.goto("http://localhost:8501/Norme")
         page.wait_for_timeout(4000)

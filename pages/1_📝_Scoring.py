@@ -7,56 +7,53 @@ lo stato aggiornato al momento del rendering.
 """
 
 import streamlit as st
-import pandas as pd
 from datetime import date
 
-from core.answer_key import SETS, ANSWER_KEY
-from core.scoring import score_with_norms, ScoringResult
+from core.answer_key import SETS
+from core.scoring import score_with_norms, ScoringResult, normalize_response
 from core.norms import age_to_band
 from core.charts import bar_chart_sets, radar_chart, percentile_gauge, item_heatmap
 from core.pdf_report import generate_pdf
 from core.database import save_result
+from ui_shell import configure_page
+
+configure_page("Scoring Singolo", "📝")
+
+RESPONSE_ITEMS = [*SETS["A"], *SETS["Ab"], *SETS["B"]]
 
 
-def _build_editor_dataframe(set_key: str) -> pd.DataFrame:
-    return pd.DataFrame({
-        "Item": SETS[set_key],
-        "Risposta": [None] * len(SETS[set_key]),
-    })
+def _response_key(item: str) -> str:
+    return f"sc_resp_{item}"
 
 
-def _ensure_editor_dataframe(set_key: str) -> pd.DataFrame:
-    values_key = f"resp_values_{set_key}"
-    current = st.session_state.get(values_key)
-    if isinstance(current, pd.DataFrame):
-        return current.copy()
-
-    df = _build_editor_dataframe(set_key)
-    st.session_state[values_key] = df.copy()
-    return df
+def _collect_responses() -> dict[str, int | None]:
+    return {
+        item: normalize_response(st.session_state.get(_response_key(item)))
+        for item in RESPONSE_ITEMS
+    }
 
 
-def _sync_editor_values(set_key: str):
-    """Sincronizza il valore persistito del data_editor dal widget state raw."""
-    values_key = f"resp_values_{set_key}"
-    widget_key = f"resp_editor_{set_key}"
-    current_df = _ensure_editor_dataframe(set_key)
-    widget_state = st.session_state.get(widget_key)
+def _filled_response_count() -> int:
+    return sum(
+        normalize_response(st.session_state.get(_response_key(item))) is not None
+        for item in RESPONSE_ITEMS
+    )
 
-    if isinstance(widget_state, pd.DataFrame):
-        st.session_state[values_key] = widget_state.copy()
-        return
 
-    if not isinstance(widget_state, dict):
-        return
-
-    updated_df = current_df.copy()
-    for row_idx, changes in widget_state.get("edited_rows", {}).items():
-        if "Risposta" not in changes:
-            continue
-        updated_df.at[int(row_idx), "Risposta"] = changes["Risposta"]
-
-    st.session_state[values_key] = updated_df
+def _render_set_inputs(set_label: str, set_key: str):
+    st.markdown(f'<div class="cpm-set-title">{set_label}</div>', unsafe_allow_html=True)
+    for item in SETS[set_key]:
+        label_col, input_col = st.columns([0.8, 1.2])
+        with label_col:
+            st.markdown(f'<div class="cpm-item-label">{item}</div>', unsafe_allow_html=True)
+        with input_col:
+            st.text_input(
+                f"Risposta {item}",
+                key=_response_key(item),
+                max_chars=1,
+                placeholder="1-6",
+                label_visibility="collapsed",
+            )
 
 
 # ─────────────────────────────────────────
@@ -73,21 +70,7 @@ def _on_calcola():
         st.session_state.pop("last_responses", None)
         return
 
-    # Leggi risposte dalla tabella dati (st.data_editor)
-    responses = {}
-    for set_key in ["A", "Ab", "B"]:
-        values_key = f"resp_values_{set_key}"
-        df = st.session_state.get(values_key, _build_editor_dataframe(set_key))
-        for _, row in df.iterrows():
-            item = row["Item"]
-            val = row["Risposta"]
-            if pd.notna(val) and val != "" and str(val).strip() not in ("–", ""):
-                try:
-                    responses[item] = int(val)
-                except (ValueError, TypeError):
-                    responses[item] = None
-            else:
-                responses[item] = None
+    responses = _collect_responses()
 
     if all(v is None for v in responses.values()):
         st.session_state["calc_error"] = "⚠️ Non è stata inserita nessuna risposta. Compila almeno un item."
@@ -133,10 +116,8 @@ def _on_reset():
     # Pulisci risultati e messaggi
     for key in ["last_result", "last_responses", "save_msg", "calc_error"]:
         st.session_state.pop(key, None)
-    # Pulisci i dataframe del data_editor (forza ricreazione)
-    for set_key in ["A", "Ab", "B"]:
-        st.session_state.pop(f"resp_editor_{set_key}", None)
-        st.session_state.pop(f"resp_values_{set_key}", None)
+    for item in RESPONSE_ITEMS:
+        st.session_state.pop(_response_key(item), None)
     # Pulisci anagrafica
     for key in ["sc_nome", "sc_cognome", "sc_dn", "sc_ds", "sc_sex", "sc_exam", "sc_note"]:
         st.session_state.pop(key, None)
@@ -210,66 +191,41 @@ with st.expander("👤 Dati del Soggetto", expanded=True):
             st.metric("Fascia normativa", eta_band if eta_band else "Non disponibile")
 
 # ─────────────────────────────────────────
-#  GRIGLIA RISPOSTE (data_editor)
+#  GRIGLIA RISPOSTE
 # ─────────────────────────────────────────
 st.subheader("📋 Risposte ai 36 Item")
-st.caption("Inserisci la risposta (1–6) per ogni item. Lascia vuoto se non risposto.")
+st.markdown(
+    '<div class="cpm-response-help">'
+    'Digita un valore da 1 a 6 e usa Tab per passare rapidamente al campo successivo. '
+    'Per ridurre ritardi e vibrazioni della pagina, i valori vengono letti quando premi Calcola Score.'
+    '</div>',
+    unsafe_allow_html=True,
+)
 
-set_configs = [
-    ("Set A", "A", "#D6EAF8"),
-    ("Set Ab", "Ab", "#FAD7A0"),
-    ("Set B", "B", "#D5F5E3"),
-]
+set_configs = [("Set A", "A"), ("Set Ab", "Ab"), ("Set B", "B")]
 
-col_a, col_sep1, col_ab, col_sep2, col_b = st.columns([4, 0.3, 4, 0.3, 4])
-columns_ui = [col_a, col_ab, col_b]
+has_invalid_dates = bool(data_nascita and data_somm and data_nascita > data_somm)
 
-for col_ui, (set_label, set_key, color) in zip(columns_ui, set_configs):
-    with col_ui:
-        st.markdown(
-            f'<div style="background:{color}; padding:0.5rem; border-radius:8px; '
-            f'text-align:center; font-weight:bold; font-size:1.1rem; margin-bottom:0.5rem;">'
-            f'{set_label}</div>',
-            unsafe_allow_html=True,
-        )
-        df_data = _ensure_editor_dataframe(set_key)
-        edited_df = st.data_editor(
-            df_data,
-            key=f"resp_editor_{set_key}",
-            on_change=_sync_editor_values,
-            args=(set_key,),
-            column_config={
-                "Item": st.column_config.TextColumn(
-                    "Item", disabled=True, width="small",
-                ),
-                "Risposta": st.column_config.SelectboxColumn(
-                    "Risposta (1–6)",
-                    options=[1, 2, 3, 4, 5, 6],
-                    width="small",
-                ),
-            },
-            hide_index=True,
-            width="stretch",
-            num_rows="fixed",
-        )
-        st.session_state[f"resp_values_{set_key}"] = edited_df.copy()
+with st.form("scoring_response_form", clear_on_submit=False):
+    col_a, col_ab, col_b = st.columns(3)
+    for col_ui, (set_label, set_key) in zip([col_a, col_ab, col_b], set_configs):
+        with col_ui:
+            _render_set_inputs(set_label, set_key)
+
+    st.form_submit_button(
+        "🧮 Calcola Score",
+        type="primary",
+        on_click=_on_calcola,
+        disabled=has_invalid_dates,
+        width="stretch",
+    )
 
 # ─────────────────────────────────────────
 #  BARRA AZIONI
 # ─────────────────────────────────────────
 st.divider()
 
-# Contatore item compilati
-answered = 0
-for set_key in ["A", "Ab", "B"]:
-    values_key = f"resp_values_{set_key}"
-    if values_key in st.session_state:
-        df_state = st.session_state[values_key]
-        for _, row in df_state.iterrows():
-            val = row.get("Risposta")
-            if pd.notna(val) and str(val).strip() not in ("", "–"):
-                answered += 1
-st.caption(f"Item compilati: **{answered}** / 36")
+st.caption(f"Valori registrati nell'ultimo calcolo: **{_filled_response_count()}** / 36")
 
 with st.expander("📝 Note / Osservazioni opzionali", expanded=False):
     st.text_area(
@@ -279,20 +235,14 @@ with st.expander("📝 Note / Osservazioni opzionali", expanded=False):
     )
 
 has_result = "last_result" in st.session_state
-has_invalid_dates = bool(data_nascita and data_somm and data_nascita > data_somm)
 
-btn_col1, btn_col2, btn_col3 = st.columns(3)
+btn_col1, btn_col2 = st.columns(2)
 with btn_col1:
-    st.button(
-        "🧮 Calcola Score", type="primary", width="stretch",
-        key="btn_calcola", on_click=_on_calcola, disabled=has_invalid_dates,
-    )
-with btn_col2:
     st.button(
         "💾 Salva nel Database", width="stretch",
         key="btn_salva", on_click=_on_salva, disabled=not has_result or has_invalid_dates,
     )
-with btn_col3:
+with btn_col2:
     st.button(
         "🔄 Nuovo Soggetto", width="stretch",
         key="btn_reset", on_click=_on_reset,

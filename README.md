@@ -23,7 +23,7 @@ App disponibile su http://localhost:8501
 
 ## Cosa include
 
-- Scoring singolo con griglia risposte, grafici, discrepanza tra set e PDF
+- Scoring singolo con input rapidi 1-6 in tre colonne, grafici, discrepanza tra set e PDF
 - Batch scoring da CSV/Excel con export risultati
 - Database SQLite locale con filtri, export anonimizzato, backup e restore
 - Report PDF singolo e ZIP batch
@@ -60,7 +60,21 @@ Suite completa:
 python -m pytest -q
 ```
 
-Nota: la suite `pytest` raccoglie anche smoke test ed E2E browser. Se Streamlit non è attivo su `localhost:8501`, questi test vengono saltati automaticamente.
+Nota: la suite `pytest` standard esclude i test browser lenti. Questo tiene rapido il ciclo di sviluppo quotidiano.
+
+Smoke test live:
+
+```bash
+streamlit run app.py
+python -m pytest -q -m smoke
+```
+
+E2E browser:
+
+```bash
+streamlit run app.py
+python -m pytest -q -m e2e
+```
 
 E2E:
 
@@ -82,5 +96,6 @@ python tests/smoke_test.py
 - Nessuna autenticazione o multi-utente
 - Dati salvati in `data/sessions.db`
 - PDF con font Helvetica: testo sanitizzato ASCII
+- Sidebar collassata di default per lasciare piu spazio utile alle pagine operative
 - Stato norme mostrato in sidebar; la pagina Norme serve per gestione CSV e consultazione
 - `tests/smoke_test.py` è pensato come controllo live rapido con server attivo su `localhost:8501`

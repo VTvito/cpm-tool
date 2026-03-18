@@ -14,6 +14,10 @@ import streamlit as st
 from core.database import get_all_subjects, subject_to_result, init_db
 from core.charts import bar_chart_sets, item_heatmap, percentile_gauge
 from core.pdf_report import generate_pdf
+from ui_shell import configure_page
+
+
+configure_page("Report PDF", "📄")
 
 init_db()
 

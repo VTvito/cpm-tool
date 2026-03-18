@@ -18,7 +18,7 @@ Target principale:
 
 ### 1. Scoring singolo
 - anagrafica essenziale
-- inserimento risposte tramite 3 `st.data_editor`
+- inserimento risposte tramite 3 colonne di campi rapidi `1-6`
 - punteggi per set A, Ab, B
 - totale grezzo
 - percentile e descrizione qualitativa quando la fascia età è disponibile
@@ -80,7 +80,7 @@ tests/               pytest + Playwright
 ## Pattern applicativi da preservare
 
 - pulsanti Streamlit sempre nel widget tree, con `on_click` e `disabled`
-- nella pagina Scoring il valore utile del `st.data_editor` è il DataFrame restituito dal widget; non usare direttamente lo stato raw del widget come se fosse sempre un DataFrame
+- nella pagina Scoring gli input risposta sono campi compatti `1-6` organizzati in 3 colonne; il calcolo avviene tramite form submit per evitare rerun continui durante la digitazione
 - le norme CSV si validano prima del salvataggio e si mappano per header, non per posizione
 - UI leggera: niente expander "come usare questa pagina" — le istruzioni sono nella Guida; niente info box "prossimo passo" dopo ogni azione
 - stato norme (placeholder / personalizzate) visibile nella sidebar, non ripetuto in ogni pagina
@@ -89,9 +89,10 @@ tests/               pytest + Playwright
 ## Qualità attuale verificata
 
 - unit test `pytest`: 47 passati
+- smoke test ed E2E browser integrati in `pytest` tramite marker dedicati (`smoke`, `e2e`) ed esclusi dal giro standard per non rallentare lo sviluppo
 - E2E Playwright: passati sui flussi Home, Batch, Database, Report, Norme e sui controlli principali della pagina Scoring
 - copertura Report in E2E: generazione PDF singolo verificata; per il batch ZIP è verificata la raggiungibilità del controllo UI, non il tempo di completamento end-to-end
-- limite noto E2E: la compilazione cella-per-cella dei 3 `st.data_editor` in Scoring non è ancora automatizzata; il test verifica presenza griglie, callback e stato UI principale
+- l'E2E della pagina Scoring verifica anche la stabilità dei valori digitati nei campi risposta prima del calcolo
 - startup Streamlit verificato
 
 ## Fuori scope attuale

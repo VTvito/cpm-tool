@@ -8,35 +8,9 @@ Avvia con:  streamlit run app.py
 from pathlib import Path
 
 import streamlit as st
+from ui_shell import configure_page
 
-st.set_page_config(
-    page_title="CPM Scoring Tool",
-    page_icon="🧩",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
-
-# ── Sidebar branding + stato norme ────────
-from core.norms import is_using_placeholder
-
-with st.sidebar:
-    st.markdown(
-        """
-        <div style="text-align:center; padding: 0.5rem 0 1rem 0;">
-            <span style="font-size:2.5rem;">🧩</span>
-            <h2 style="margin:0; color:#1B3A6B;">CPM Scoring Tool</h2>
-            <p style="color:#666; font-size:0.85rem; margin-top:0.2rem;">
-                Matrici Colorate di Raven
-            </p>
-        </div>
-        <hr style="margin: 0 0 1rem 0;">
-        """,
-        unsafe_allow_html=True,
-    )
-    if is_using_placeholder():
-        st.warning("Norme: valori di esempio. Carica le norme reali in **📏 Norme**.", icon="⚠️")
-    else:
-        st.success("Norme personalizzate attive.", icon="✅")
+configure_page("CPM Scoring Tool", "🧩")
 
 # ── Home page ─────────────────────────────
 st.markdown(
@@ -61,26 +35,26 @@ st.divider()
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.page_link("pages/1_📝_Scoring.py", label="📝  Scoring Singolo", icon="📝")
-    st.caption("Risposte di un soggetto, punteggio e grafici.")
+    st.page_link("pages/1_📝_Scoring.py", label="Scoring Singolo", icon="📝")
+    st.markdown('<div class="cpm-home-card-caption">Risposte di un soggetto, punteggio e grafici.</div>', unsafe_allow_html=True)
 
 with col2:
-    st.page_link("pages/2_📊_Batch.py", label="📊  Batch Scoring", icon="📊")
-    st.caption("Carica un file CSV/Excel con più soggetti.")
+    st.page_link("pages/2_📊_Batch.py", label="Batch Scoring", icon="📊")
+    st.markdown('<div class="cpm-home-card-caption">Carica un file CSV o Excel con piu soggetti.</div>', unsafe_allow_html=True)
 
 with col3:
-    st.page_link("pages/3_🗄️_Database.py", label="🗄️  Database", icon="🗄️")
-    st.caption("Consulta, filtra ed esporta i risultati salvati.")
+    st.page_link("pages/3_🗄️_Database.py", label="Database", icon="🗄️")
+    st.markdown('<div class="cpm-home-card-caption">Consulta, filtra ed esporta i risultati salvati.</div>', unsafe_allow_html=True)
 
 col4, col5, col6 = st.columns(3)
 
 with col4:
-    st.page_link("pages/4_📄_Report.py", label="📄  Report PDF", icon="📄")
-    st.caption("Genera report stampabili singoli o in blocco.")
+    st.page_link("pages/4_📄_Report.py", label="Report PDF", icon="📄")
+    st.markdown('<div class="cpm-home-card-caption">Genera report stampabili singoli o in blocco.</div>', unsafe_allow_html=True)
 
 with col5:
-    st.page_link("pages/5_📏_Norme.py", label="📏  Norme", icon="📏")
-    st.caption("Gestisci tabelle normative e calcolatore rapido.")
+    st.page_link("pages/5_📏_Norme.py", label="Norme", icon="📏")
+    st.markdown('<div class="cpm-home-card-caption">Gestisci tabelle normative e calcolatore rapido.</div>', unsafe_allow_html=True)
 
 with col6:
     pass  # spazio vuoto per bilanciare la griglia
