@@ -1,0 +1,5 @@
+# Dipendenze di sistema per Streamlit Cloud (Ubuntu) necessarie per kaleido >= 1.0
+# kaleido 1.x usa un browser Chromium bundled per la renderizzazione dei grafici
+libgbm1
+libnss3
+libatk-bridge2.0-0

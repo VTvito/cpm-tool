@@ -302,6 +302,20 @@ class TestNorms:
         assert msg.startswith("Errore")
         assert not csv_path.exists()
 
+    def test_save_norms_csv_rejects_non_integer_score(self, tmp_path, monkeypatch):
+        """CSV con punteggio grezzo non intero viene respinto con messaggio localizzato (regression test fix)."""
+        csv_path = tmp_path / "norms.csv"
+        monkeypatch.setattr("core.norms._NORMS_CSV_PATH", csv_path)
+        bad_csv = (
+            "Punteggio Grezzo,Et\u00e0 3\n"
+            "abc,<5\n"
+            "10,25\n"
+        ).encode("utf-8")
+        msg = save_norms_csv(bad_csv)
+        assert msg.startswith("Errore")
+        assert "abc" in msg
+        assert not csv_path.exists()
+
 
 # ═══════════════════════════════════════════
 #  pdf_report.py
@@ -435,6 +449,22 @@ class TestDatabase:
         assert subj is not None
         stored = json.loads(subj["risposte"])
         assert stored["A1"] == ANSWER_KEY["A1"]
+
+    def test_subject_to_result_corrupted_json(self):
+        """subject_to_result deve gestire JSON corrotto senza crash (regression test fix)."""
+        import sqlite3 as _sqlite3
+        from core.database import save_result, get_subject, subject_to_result, DB_PATH
+        result = score_responses({})
+        result.nome = "Corrupted"
+        rec_id = save_result(result, {})
+        # Corrompe direttamente la colonna risposte nel DB
+        conn = _sqlite3.connect(str(DB_PATH))
+        conn.execute("UPDATE subjects SET risposte = 'NOT_VALID_JSON' WHERE id = ?", (rec_id,))
+        conn.commit()
+        conn.close()
+        subj = get_subject(rec_id)
+        rebuilt = subject_to_result(subj)  # non deve sollevare eccezioni
+        assert rebuilt.total_raw == 0  # nessuna risposta valida
 
 
 # ═══════════════════════════════════════════

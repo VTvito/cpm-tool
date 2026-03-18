@@ -97,7 +97,8 @@ python tests/smoke_test.py
 - Nessuna autenticazione o multi-utente
 - Dati salvati in `data/sessions.db`
 - PDF con font Helvetica: testo sanitizzato ASCII
-- Sidebar collassata di default per lasciare piu spazio utile alle pagine operative
+- Sidebar navy sempre visibile su desktop con navigazione completa tra le pagine
+- Su Streamlit Cloud Community il filesystem è condiviso tra sessioni ma NON persiste across deploy: fare il backup del DB prima di ogni redeploy tramite la pagina Database
 - Scoring ottimizzato per tastiera: valori `1-6`, passaggio rapido con `Tab`, calcolo solo al submit del form
 - Stato norme mostrato in sidebar; la pagina Norme serve per gestione CSV e consultazione
 - `tests/smoke_test.py` è pensato come controllo live rapido con server attivo su `localhost:8501`
