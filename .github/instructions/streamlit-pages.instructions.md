@@ -51,7 +51,18 @@ Pages import from `core/` only. Never import `streamlit` inside `core/` modules.
 - Move advanced operations, maintenance actions, or secondary charts into expanders or lower sections.
 - Do NOT add per-page "ℹ️ Come usare questa pagina" expanders — guidance lives in `docs/GUIDA.md` and the Home page expander.
 - Do NOT add "Prossimo passo" / next-step info boxes after actions — keep the UI quiet after saves and uploads.
-- Norms status (placeholder / custom) is shown once in the sidebar (`app.py`), not on individual pages.
+- Norms status (placeholder / custom) is shown once in the sidebar (`streamlit_ui/shell.py`), not on individual pages.
+
+## Shared UI Shell — `configure_page()`
+
+All pages must call `configure_page(title, icon)` as their **first** statement (before any widget).
+This function is in `streamlit_ui/shell.py` and:
+- Calls `st.set_page_config(layout="wide", initial_sidebar_state="auto")`.
+- Formats the browser tab title as `"<title> · CPM"`.
+- Injects all CSS (design tokens use `--c-*` prefix: `--c-primary`, `--c-ink`, `--c-surface`, etc.).
+- Renders the dark navy sidebar with `st.page_link` navigation for all 5 pages + Home and the norms status badge.
+
+**Do not** call `st.set_page_config()` directly in pages.
 
 ## Deprecation: use_container_width
 

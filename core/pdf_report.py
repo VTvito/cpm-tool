@@ -247,14 +247,16 @@ def generate_pdf(
         pdf.ln(3)
 
         for name, img_bytes in chart_images.items():
-            with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
-                tmp.write(img_bytes)
-                tmp_path = tmp.name
+            tmp_path = None
             try:
+                with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
+                    tmp_path = tmp.name
+                    tmp.write(img_bytes)
                 pdf.image(tmp_path, w=170)
                 pdf.ln(5)
             finally:
-                Path(tmp_path).unlink(missing_ok=True)
+                if tmp_path:
+                    Path(tmp_path).unlink(missing_ok=True)
 
     # ── NOTE ────────────────────────────────
     if result.note:

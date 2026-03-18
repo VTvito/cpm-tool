@@ -7,10 +7,10 @@ from core.norms import is_using_placeholder
 
 def configure_page(page_title: str, page_icon: str = "🧩") -> None:
     st.set_page_config(
-        page_title=page_title,
+        page_title=f"{page_title} · CPM",
         page_icon=page_icon,
         layout="wide",
-        initial_sidebar_state="collapsed",
+        initial_sidebar_state="auto",
     )
     _inject_styles()
     _render_sidebar()
@@ -20,239 +20,326 @@ def _inject_styles() -> None:
     st.markdown(
         """
         <style>
+        /* ─── Design tokens ─────────────────────────────────── */
         :root {
-            --cpm-bg: #f2eee6;
-            --cpm-surface: #faf7f1;
-            --cpm-surface-strong: #ffffff;
-            --cpm-ink: #13202d;
-            --cpm-muted: #4c5b6d;
-            --cpm-border: #bcc8d4;
-            --cpm-primary: #0e5a86;
-            --cpm-primary-strong: #0a3f61;
-            --cpm-accent: #a95f18;
-            --cpm-success: #1e6b42;
-            --cpm-warning: #9c4b00;
-            --cpm-shadow: 0 10px 32px rgba(19, 32, 45, 0.06);
+            --c-bg:          #f2f5f9;
+            --c-surface:     #ffffff;
+            --c-surface-alt: #eaeff5;
+            --c-border:      #c8d5e0;
+            --c-border-l:    #dce6ee;
+            --c-ink:         #0e1d2a;
+            --c-muted:       #4c6475;
+            --c-primary:     #1a4f72;
+            --c-primary-h:   #0e3451;
+            --c-primary-l:   #2874a6;
+            --c-accent:      #9d4106;
+            --c-success:     #1a6b42;
+            --c-danger:      #862015;
+            --c-shadow:      0 2px 8px  rgba(14, 29, 42, 0.07);
+            --c-shadow-md:   0 4px 18px rgba(14, 29, 42, 0.09);
+            --c-shadow-lg:   0 8px 32px rgba(14, 29, 42, 0.12);
+            --r-sm: 8px;
+            --r:    12px;
+            --r-lg: 18px;
         }
 
+        /* ─── Base ───────────────────────────────────────────── */
         .stApp {
-            background:
-                radial-gradient(circle at top right, rgba(14, 90, 134, 0.10), transparent 22%),
-                radial-gradient(circle at top left, rgba(169, 95, 24, 0.08), transparent 18%),
-                linear-gradient(180deg, #f7f3ec 0%, var(--cpm-bg) 100%);
-            color: var(--cpm-ink);
-            font-family: Aptos, "Segoe UI", "Trebuchet MS", sans-serif;
+            background: var(--c-bg);
+            color: var(--c-ink);
+            font-family: "Segoe UI", "Inter", system-ui, -apple-system, Arial, sans-serif;
         }
 
         .block-container {
-            max-width: 1380px;
-            padding-top: 1rem;
-            padding-bottom: 2.2rem;
+            max-width: 1320px;
+            padding-top: 0.75rem;
+            padding-bottom: 2rem;
         }
 
-        h1, h2, h3, h4, h5, h6 {
-            color: var(--cpm-ink);
+        /* ─── Typography ─────────────────────────────────────── */
+        h1, h2, h3 {
             font-family: Georgia, "Times New Roman", serif;
-            letter-spacing: -0.02em;
+            color: var(--c-ink);
+            letter-spacing: -0.022em;
         }
 
-        h1 {
-            font-size: 2.5rem;
-        }
-
-        h2 {
-            font-size: 1.7rem;
-        }
-
-        p, label, span, div {
-            color: var(--cpm-ink);
-        }
+        h1 { font-size: 2.2rem; line-height: 1.2; }
+        h2 { font-size: 1.55rem; }
+        h3 { font-size: 1.18rem; }
 
         p,
         div[data-testid="stCaptionContainer"] p,
+        .stMarkdown p,
         label[data-testid="stWidgetLabel"] {
-            color: var(--cpm-muted) !important;
+            color: var(--c-muted) !important;
+            font-size: 0.94rem;
         }
 
+        /* ─── Sidebar ────────────────────────────────────────── */
         section[data-testid="stSidebar"] {
-            background: linear-gradient(180deg, #ebf1f6 0%, #e0e8ef 100%);
-            border-right: 1px solid rgba(14, 90, 134, 0.16);
+            background: linear-gradient(170deg, #12253a 0%, #1b3a60 100%);
+            border-right: none;
         }
 
         section[data-testid="stSidebar"] > div {
-            min-width: 16rem;
-            max-width: 16rem;
+            min-width: 14.5rem;
+            max-width: 14.5rem;
         }
 
+        section[data-testid="stSidebar"] p,
+        section[data-testid="stSidebar"] span,
+        section[data-testid="stSidebar"] div,
+        section[data-testid="stSidebar"] label {
+            color: #bbd3e8 !important;
+        }
+
+        section[data-testid="stSidebar"] h1,
+        section[data-testid="stSidebar"] h2,
+        section[data-testid="stSidebar"] h3 {
+            color: #e0f0fd !important;
+        }
+
+        section[data-testid="stSidebar"] hr {
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+
+        section[data-testid="stSidebar"] .stAlert {
+            background: rgba(255, 255, 255, 0.07) !important;
+            border-color: rgba(255, 255, 255, 0.13) !important;
+        }
+
+        section[data-testid="stSidebar"] div[data-testid="stPageLink"] a {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(255, 255, 255, 0.10) !important;
+            border-radius: var(--r-sm) !important;
+            padding: 0.45rem 0.55rem !important;
+            min-height: unset !important;
+            transition: background 0.15s ease, border-color 0.15s ease;
+        }
+
+        section[data-testid="stSidebar"] div[data-testid="stPageLink"] a:hover {
+            background: rgba(255, 255, 255, 0.13) !important;
+            border-color: rgba(255, 255, 255, 0.20) !important;
+            transform: none !important;
+        }
+
+        section[data-testid="stSidebar"] div[data-testid="stPageLink"] a p {
+            color: #cce3f5 !important;
+            font-size: 0.9rem !important;
+            font-weight: 600 !important;
+        }
+
+        /* ─── Alerts ─────────────────────────────────────────── */
         .stAlert {
-            border-radius: 14px;
+            border-radius: var(--r);
             border-width: 1px;
-            box-shadow: var(--cpm-shadow);
+            box-shadow: none;
         }
 
+        /* ─── Metrics ────────────────────────────────────────── */
         div[data-testid="stMetric"] {
-            background: rgba(255, 255, 255, 0.92);
-            border: 1px solid rgba(19, 32, 45, 0.08);
-            border-radius: 14px;
-            padding: 0.75rem 0.9rem;
-            box-shadow: var(--cpm-shadow);
+            background: var(--c-surface);
+            border: 1px solid var(--c-border-l);
+            border-radius: var(--r);
+            padding: 0.8rem 0.95rem;
+            box-shadow: var(--c-shadow);
         }
 
         div[data-testid="stMetricLabel"] * {
-            color: var(--cpm-muted) !important;
+            color: var(--c-muted) !important;
             font-weight: 600;
+            font-size: 0.8rem !important;
+            text-transform: uppercase;
+            letter-spacing: 0.055em;
         }
 
         div[data-testid="stMetricValue"] * {
-            color: var(--cpm-ink) !important;
+            color: var(--c-ink) !important;
+            font-weight: 700;
         }
 
+        /* ─── Buttons ────────────────────────────────────────── */
         .stButton > button,
-        .stDownloadButton > button,
-        div[data-testid="stBaseButton-secondary"] > button,
-        div[data-testid="stBaseButton-primary"] > button {
-            border-radius: 12px;
-            font-weight: 700;
-            border: 1px solid rgba(14, 90, 134, 0.24);
+        .stDownloadButton > button {
+            border-radius: var(--r-sm);
+            font-weight: 600;
+            min-height: 2.7rem;
+            transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease,
+                        border-color 0.15s ease;
             box-shadow: none;
-            min-height: 2.9rem;
+            border: 1px solid var(--c-border);
+            background: var(--c-surface);
+            color: var(--c-ink);
         }
 
         .stButton > button[kind="primary"],
-        .stDownloadButton > button[kind="primary"] {
-            background: linear-gradient(180deg, var(--cpm-primary) 0%, var(--cpm-primary-strong) 100%);
-            color: #ffffff;
+        .stDownloadButton > button[kind="primary"],
+        button[data-testid="baseButton-primary"] {
+            background: linear-gradient(180deg, #2271a8 0%, var(--c-primary) 100%) !important;
+            color: #ffffff !important;
+            border-color: transparent !important;
         }
 
+        .stButton > button[kind="primary"]:hover,
+        button[data-testid="baseButton-primary"]:hover {
+            box-shadow: 0 4px 14px rgba(26, 79, 114, 0.30) !important;
+            transform: translateY(-1px);
+        }
+
+        .stButton > button:not([kind="primary"]):hover {
+            border-color: var(--c-primary-l);
+        }
+
+        /* ─── Inputs ─────────────────────────────────────────── */
         .stTextInput input,
         .stTextArea textarea,
         .stSelectbox [data-baseweb="select"],
         .stDateInput input,
         .stNumberInput input {
-            background: var(--cpm-surface-strong) !important;
-            color: var(--cpm-ink) !important;
-            border: 1px solid var(--cpm-border) !important;
-            border-radius: 10px !important;
+            background: var(--c-surface) !important;
+            color: var(--c-ink) !important;
+            border: 1px solid var(--c-border) !important;
+            border-radius: var(--r-sm) !important;
             box-shadow: none !important;
-            transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
         }
 
         .stTextInput input:focus,
         .stTextArea textarea:focus,
         .stDateInput input:focus,
         .stNumberInput input:focus {
-            border-color: var(--cpm-primary) !important;
-            box-shadow: 0 0 0 3px rgba(14, 90, 134, 0.16) !important;
-            transform: translateY(-1px);
+            border-color: var(--c-primary-l) !important;
+            box-shadow: 0 0 0 3px rgba(40, 116, 166, 0.14) !important;
         }
 
+        /* ─── Home nav cards ──────────────────────────────────── */
         div[data-testid="stPageLink"] a {
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid rgba(14, 90, 134, 0.12);
-            border-radius: 18px;
-            padding: 0.9rem 1rem;
-            min-height: 4rem;
-            box-shadow: var(--cpm-shadow);
+            background: var(--c-surface);
+            border: 1px solid var(--c-border-l);
+            border-radius: var(--r-lg);
+            padding: 1.05rem 1.1rem;
+            min-height: 4.2rem;
+            box-shadow: var(--c-shadow);
+            transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease;
         }
 
         div[data-testid="stPageLink"] a:hover {
-            border-color: rgba(15, 92, 138, 0.32);
-            background: #ffffff;
+            border-color: var(--c-primary-l);
+            box-shadow: var(--c-shadow-md);
+            transform: translateY(-2px);
         }
 
-        .cpm-home-card-caption {
-            min-height: 2.7rem;
-            padding-inline: 0.2rem;
+        div[data-testid="stPageLink"] a p {
+            font-weight: 700 !important;
+            color: var(--c-ink) !important;
+            font-size: 0.97rem !important;
         }
 
-        .cpm-response-help {
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(248, 251, 253, 0.88) 100%);
-            border: 1px solid rgba(14, 90, 134, 0.12);
-            border-radius: 14px;
-            padding: 0.8rem 1rem;
-            margin-bottom: 0.85rem;
-            color: var(--cpm-muted);
-            box-shadow: var(--cpm-shadow);
-        }
-
-        .cpm-set-title {
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(245, 249, 252, 0.92) 100%);
-            border: 1px solid rgba(14, 90, 134, 0.14);
-            border-radius: 14px;
-            padding: 0.65rem 0.8rem;
-            font-weight: 700;
-            margin-bottom: 0.65rem;
-            box-shadow: var(--cpm-shadow);
-        }
-
-        .cpm-set-card {
-            background: rgba(255, 255, 255, 0.64);
-            border: 1px solid rgba(14, 90, 134, 0.10);
-            border-radius: 16px;
-            padding: 0.8rem 0.8rem 0.5rem 0.8rem;
-            box-shadow: var(--cpm-shadow);
-        }
-
-        .cpm-item-label {
-            font-weight: 700;
-            padding-top: 0.1rem;
-            margin-bottom: 0.2rem;
-            color: var(--cpm-ink);
-            text-align: center;
-            font-size: 0.9rem;
-        }
-
-        .cpm-scoring-toolbar {
-            background: rgba(255, 255, 255, 0.84);
-            border: 1px solid rgba(14, 90, 134, 0.10);
-            border-radius: 14px;
-            padding: 0.75rem 0.9rem;
-            margin-bottom: 0.8rem;
-            box-shadow: var(--cpm-shadow);
-        }
-
-        .cpm-kbd {
-            display: inline-block;
-            min-width: 1.9rem;
-            padding: 0.08rem 0.4rem;
-            margin-inline: 0.12rem;
-            border-radius: 8px;
-            border: 1px solid rgba(19, 32, 45, 0.12);
-            background: rgba(255, 255, 255, 0.9);
-            color: var(--cpm-ink);
-            font-size: 0.86rem;
-            font-weight: 700;
-            text-align: center;
-        }
-
-        div[data-testid="stTextInput"] input[aria-label^="Risposta "] {
-            text-align: center;
-            font-size: 1.08rem;
-            font-weight: 800;
-            line-height: 1;
-            padding-top: 0.5rem !important;
-            padding-bottom: 0.5rem !important;
-        }
-
-        div[data-testid="stTextInput"] {
-            margin-bottom: 0.35rem;
-        }
-
+        /* ─── Expanders ───────────────────────────────────────── */
         div[data-testid="stExpander"] {
-            border: 1px solid rgba(14, 90, 134, 0.10);
-            border-radius: 14px;
-            background: rgba(255, 255, 255, 0.76);
-            box-shadow: var(--cpm-shadow);
+            border: 1px solid var(--c-border-l);
+            border-radius: var(--r);
+            background: var(--c-surface);
+            box-shadow: none;
             overflow: hidden;
         }
 
-        hr {
-            border-color: rgba(22, 32, 43, 0.10);
+        /* ─── Bordered containers ─────────────────────────────── */
+        div[data-testid="stVerticalBlockBorderWrapper"] {
+            border-color: var(--c-border-l) !important;
+            border-radius: var(--r) !important;
+            background: var(--c-surface) !important;
+            box-shadow: var(--c-shadow) !important;
+        }
+
+        /* ─── HR ──────────────────────────────────────────────── */
+        hr { border-color: var(--c-border-l); }
+
+        /* ─── Custom component classes ────────────────────────── */
+
+        /* Home page card subtitle */
+        .cpm-home-card-caption {
+            color: var(--c-muted) !important;
+            font-size: 0.875rem;
+            line-height: 1.45;
+            padding: 0.2rem 0.25rem 0.4rem 0.25rem;
+        }
+
+        /* Scoring page instruction banner */
+        .cpm-response-help {
+            background: var(--c-surface-alt);
+            border: 1px solid var(--c-border-l);
+            border-radius: var(--r);
+            padding: 0.7rem 1rem;
+            margin-bottom: 0.8rem;
+            color: var(--c-muted);
+        }
+
+        /* Set column header */
+        .cpm-set-title {
+            background: transparent;
+            border-bottom: 2px solid var(--c-border);
+            padding: 0.5rem 0.65rem 0.45rem 0.65rem;
+            font-weight: 800;
+            font-size: 0.86rem;
+            color: var(--c-primary) !important;
+            text-transform: uppercase;
+            letter-spacing: 0.065em;
+            margin-bottom: 0.6rem;
+        }
+
+        /* Item code label above each input */
+        .cpm-item-label {
+            font-weight: 700;
+            margin-bottom: 0.15rem;
+            color: var(--c-ink);
+            text-align: center;
+            font-size: 0.875rem;
+        }
+
+        /* Response counter toolbar */
+        .cpm-scoring-toolbar {
+            background: var(--c-surface-alt);
+            border: 1px solid var(--c-border-l);
+            border-radius: var(--r);
+            padding: 0.65rem 0.9rem;
+            margin-bottom: 0.7rem;
+            color: var(--c-muted);
+        }
+
+        /* Keyboard shortcut badge */
+        .cpm-kbd {
+            display: inline-block;
+            min-width: 1.75rem;
+            padding: 0.05rem 0.32rem;
+            margin-inline: 0.1rem;
+            border-radius: 6px;
+            border: 1px solid var(--c-border);
+            background: var(--c-surface);
+            color: var(--c-ink);
+            font-size: 0.83rem;
+            font-weight: 700;
+            text-align: center;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.07);
+        }
+
+        /* Centred large input for single-character responses */
+        div[data-testid="stTextInput"] input[aria-label^="Risposta "] {
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 800;
+            padding-top: 0.45rem !important;
+            padding-bottom: 0.45rem !important;
+        }
+
+        div[data-testid="stTextInput"] {
+            margin-bottom: 0.3rem;
         }
         </style>
         """,
         unsafe_allow_html=True,
     )
+
 
 
 def _render_sidebar() -> None:
@@ -261,21 +348,29 @@ def _render_sidebar() -> None:
     with st.sidebar:
         st.markdown(
             """
-            <div style="padding: 0.2rem 0 1rem 0;">
-                <div style="font-size: 2rem; line-height: 1;">🧩</div>
-                <div style="font-size: 1.2rem; font-weight: 800; margin-top: 0.35rem; color: #132238;">
+            <div style="padding: 0.5rem 0.2rem 1.2rem 0.2rem;">
+                <div style="font-size: 2rem; line-height:1;">🧩</div>
+                <div style="font-size: 1.1rem; font-weight: 800; margin-top: 0.4rem; color: #e2f0fc;">
                     CPM Scoring Tool
                 </div>
-                <div style="font-size: 0.92rem; color: #536173; margin-top: 0.15rem;">
+                <div style="font-size: 0.82rem; color: #7aadcc; margin-top: 0.1rem; letter-spacing: 0.02em;">
                     Matrici Colorate di Raven
                 </div>
             </div>
             """,
             unsafe_allow_html=True,
         )
+        st.divider()
+        st.page_link("app.py", label="Home", icon="🏠")
+        st.page_link("pages/1_📝_Scoring.py", label="Scoring Singolo", icon="📝")
+        st.page_link("pages/2_📊_Batch.py", label="Batch Scoring", icon="📊")
+        st.page_link("pages/3_🗄️_Database.py", label="Database", icon="🗄️")
+        st.page_link("pages/4_📄_Report.py", label="Report PDF", icon="📄")
+        st.page_link("pages/5_📏_Norme.py", label="Norme", icon="📏")
+        st.divider()
         if using_placeholder:
             st.warning(
-                "Norme di esempio attive. Per percentili reali, carica un CSV dalla pagina Norme.",
+                "Norme di esempio attive.\nCarica un CSV dalla pagina **Norme** per percentili reali.",
                 icon="⚠️",
             )
         else:

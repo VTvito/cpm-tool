@@ -12,7 +12,9 @@ Questa applicazione aiuta a gestire lo scoring CPM in modo semplice, locale e ad
 ## Pagine del tool
 
 ### 📝 Scoring
-- Inserisci dati del soggetto e risposte item per item.
+- Inserisci i dati del soggetto.
+- Compila le risposte nei campi rapidi `1-6`, organizzati in tre colonne (Set A, Ab, B).
+- Usa `Tab` per passare rapidamente al campo successivo.
 - Premi **Calcola Score**.
 - Controlla punteggi, percentile, grafici e discrepanza tra set.
 - Se il risultato ti serve dopo, salvalo nel database.
@@ -44,6 +46,7 @@ Questa applicazione aiuta a gestire lo scoring CPM in modo semplice, locale e ad
 - I valori di esempio non vanno usati per interpretazione clinica o ricerca finale.
 - Il database è locale: i dati restano sulla macchina che usa il tool.
 - Il PDF usa un font standard, quindi alcuni caratteri speciali vengono semplificati automaticamente.
+- La **barra laterale** è sempre visibile su desktop e contiene i link di navigazione verso tutte le pagine e lo stato corrente delle norme.
 
 ## Workflow consigliato
 

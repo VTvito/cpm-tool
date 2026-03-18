@@ -56,8 +56,9 @@ Target principale:
 ### 6. Guida utente
 - guida rapida disponibile nel file `docs/GUIDA.md`
 - stessa guida consultabile nella home dell'app (expander)
-- home con navigazione compatta a link diretti verso le 5 pagine
+- home con navigazione a link (3+2) con descrizioni per ciascuna pagina + banner workflow
 - stato norme (placeholder/personalizzate) nella sidebar globale
+- sidebar con navigazione completa verso tutte le pagine, sempre visibile su desktop (`initial_sidebar_state="auto"`)
 
 ## Vincoli operativi
 
@@ -72,6 +73,7 @@ Target principale:
 
 ```text
 app.py + pages/      UI Streamlit
+streamlit_ui/        shell grafico condiviso: configure_page(), CSS, sidebar nav
 core/                logica pura di scoring, norme, PDF, DB
 data/                SQLite locale + eventuale norms.csv
 tests/               pytest + Playwright
@@ -81,10 +83,14 @@ tests/               pytest + Playwright
 
 - pulsanti Streamlit sempre nel widget tree, con `on_click` e `disabled`
 - nella pagina Scoring gli input risposta sono campi compatti `1-6` organizzati in 3 colonne; il calcolo avviene tramite form submit per evitare rerun continui durante la digitazione
+- la UI condivisa vive nel package `streamlit_ui/`; evitare helper top-level isolati quando devono essere importati da tutte le pagine, per ridurre problemi di import/reload in deploy cloud
 - le norme CSV si validano prima del salvataggio e si mappano per header, non per posizione
 - UI leggera: niente expander "come usare questa pagina" — le istruzioni sono nella Guida; niente info box "prossimo passo" dopo ogni azione
 - stato norme (placeholder / personalizzate) visibile nella sidebar, non ripetuto in ogni pagina
-- home con navigazione compatta (page_link + caption), guida completa accessibile via expander
+- sidebar scura (navy) con navigazione completa (`st.page_link` per tutte le 5 pagine + Home) e stato norme; `initial_sidebar_state="auto"` — espansa su desktop
+- `configure_page()` in `streamlit_ui/shell.py` imposta titolo nel formato `«Pagina» · CPM`, largo e sidebar auto; tutte le pagine la usano
+- home con navigazione compatta (page_link 3+2 + caption), banner workflow visivo, guida accessibile via expander
+- CSS design token: prefisso `--c-*` (es. `--c-primary`, `--c-ink`, `--c-surface`)
 
 ## Qualità attuale verificata
 
@@ -93,6 +99,7 @@ tests/               pytest + Playwright
 - E2E Playwright: passati sui flussi Home, Batch, Database, Report, Norme e sui controlli principali della pagina Scoring
 - copertura Report in E2E: generazione PDF singolo verificata; per il batch ZIP è verificata la raggiungibilità del controllo UI, non il tempo di completamento end-to-end
 - l'E2E della pagina Scoring verifica anche la stabilità dei valori digitati nei campi risposta prima del calcolo
+- shell UI condiviso e import multipagina verificati dopo il refactor nel package `streamlit_ui`
 - startup Streamlit verificato
 
 ## Fuori scope attuale

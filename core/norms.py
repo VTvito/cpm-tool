@@ -119,7 +119,10 @@ def _parse_norm_csv_text(csv_text: str) -> tuple[list[str], list[tuple]]:
         if not raw_text:
             continue
 
-        raw_score = int(raw_text)
+        try:
+            raw_score = int(raw_text)
+        except ValueError:
+            raise ValueError(f"il punteggio grezzo '{raw_text}' non è un numero intero valido.")
         if previous_raw is not None and raw_score <= previous_raw:
             raise ValueError("i punteggi grezzi devono essere ordinati in modo strettamente crescente.")
 

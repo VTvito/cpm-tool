@@ -7,9 +7,12 @@ Versione documento: 2026-03-18
 Il tool copre il workflow CPM completo: inserimento risposte, scoring singolo e batch,
 percentili con norme CSV, grafici interattivi, database SQLite locale, report PDF.
 
-Qualità verificata con 47 unit test + E2E Playwright sui flussi principali di tutte le pagine.
+UI refactored (2026-03-18): design system accademico pulito, sidebar navy con navigazione
+completa, token CSS `--c-*`, home page con hero + banner workflow.
 
-Valutazione complessiva: **8.5 / 10**
+Qualità verificata con 47 test standard + smoke/E2E browser separati sui flussi principali di tutte le pagine.
+
+Valutazione complessiva: **9 / 10**
 
 ---
 
@@ -85,6 +88,13 @@ Interventi per consolidare e ampliare il valore del tool.
 - **Perché**: Streamlit ha limitazioni ma i margini di miglioramento ci sono.
 - **Come**: audit con Lighthouse/axe, fix puntuali su colori e heading.
 - **Effort**: basso-medio.
+
+### 2.5 Tastiera avanzata nello Scoring
+
+- **Cosa**: focus chain ancora più efficiente per inserimento rapido item-per-item.
+- **Perché**: lo Scoring è già ottimizzato con campi rapidi e form submit, ma un flusso quasi da data-entry ridurrebbe ancora il tempo operativo.
+- **Come**: valutare componenti/custom JS molto mirati solo se Streamlit base non basta, senza compromettere stabilità e deploy.
+- **Effort**: medio.
 
 ---
 

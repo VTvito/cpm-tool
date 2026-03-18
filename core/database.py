@@ -117,7 +117,10 @@ def delete_subject(subject_id: int):
 def subject_to_result(row: dict) -> ScoringResult:
     """Ricostruisce un ScoringResult da un record del database."""
     from core.scoring import score_responses
-    responses = json.loads(row["risposte"]) if row["risposte"] else {}
+    try:
+        responses = json.loads(row["risposte"]) if row["risposte"] else {}
+    except (json.JSONDecodeError, TypeError):
+        responses = {}
     result = score_responses(responses)
     result.nome = row.get("nome", "")
     result.cognome = row.get("cognome", "")

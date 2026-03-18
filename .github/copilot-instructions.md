@@ -21,6 +21,8 @@ Language: Italian UI, Italian code comments, English code identifiers.
 
 ```
 app.py                  # Entry point + home page (st.page_link navigation)
+streamlit_ui/           # Shared UI layer — no core/ imports
+  shell.py              #   configure_page(), CSS tokens, dark sidebar + nav links
 core/                   # Pure logic — no Streamlit imports
   answer_key.py         # 36-item answer key (3 sets × 12)
   norms.py              # Normative tables — CSV loading + placeholder fallback
@@ -29,7 +31,7 @@ core/                   # Pure logic — no Streamlit imports
   pdf_report.py         # A4 PDF generation with fpdf2
   database.py           # SQLite CRUD
 pages/                  # Streamlit pages (auto-discovered)
-  1_📝_Scoring.py       # Single subject scoring (st.data_editor input)
+  1_📝_Scoring.py       # Single subject scoring (text input grid)
   2_📊_Batch.py         # CSV/Excel batch scoring
   3_🗄️_Database.py      # Database viewer/export/backup/restore
   4_📄_Report.py        # PDF report generator (single + batch ZIP)
@@ -67,8 +69,17 @@ if "result" in st.session_state:       # Conditional DISPLAY only
 Keep pages clean and focused:
 - **No per-page help expanders** — user guidance lives in `docs/GUIDA.md` and the Home expander only.
 - **No "next step" info boxes** after actions (save, upload, generate) — trust the user to navigate.
-- **Norms status** (placeholder / custom) is shown **once in the sidebar** (set in `app.py`), not repeated on individual pages.
+- **Norms status** (placeholder / custom) is shown **once in the sidebar** (`streamlit_ui/shell.py → _render_sidebar()`), not repeated on individual pages.
+- **Sidebar navigation** (`st.page_link` for all 5 pages + Home) lives in `_render_sidebar()` — do not duplicate nav in page bodies.
 - Advanced operations and secondary charts go in expanders or lower sections.
+
+### Shared UI Shell
+
+`streamlit_ui/shell.py` is the single source of truth for page setup:
+- `configure_page(title, icon)` calls `st.set_page_config(initial_sidebar_state="auto")` and sets page title as `"<title> · CPM"`.
+- `_inject_styles()` contains all CSS; design tokens use the `--c-*` prefix (e.g. `--c-primary`, `--c-ink`, `--c-surface`).
+- `_render_sidebar()` renders the dark navy sidebar with navigation links and norms status badge.
+- Every page must call `configure_page()` as its first statement — before any other `st.*` call.
 
 ### Scoring Page data_editor
 

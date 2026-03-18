@@ -43,10 +43,12 @@ def _validate_restore_bytes(restore_bytes: bytes) -> str | None:
             tmp.write(restore_bytes)
             tmp_path = tmp.name
         conn = _sqlite3.connect(tmp_path)
-        tables = [r[0] for r in conn.execute(
-            "SELECT name FROM sqlite_master WHERE type='table'"
-        ).fetchall()]
-        conn.close()
+        try:
+            tables = [r[0] for r in conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table'"
+            ).fetchall()]
+        finally:
+            conn.close()
         if "subjects" not in tables:
             return "❌ Il file caricato non contiene la tabella 'subjects'. Non è un backup valido."
         return None
@@ -137,8 +139,8 @@ search_text = st.text_input(
 if search_text:
     search_lower = search_text.lower()
     df_display = df_display[
-        df_display["Nome"].astype(str).str.lower().str.contains(search_lower, na=False) |
-        df_display["Cognome"].astype(str).str.lower().str.contains(search_lower, na=False)
+        df_display["Nome"].astype(str).str.lower().str.contains(search_lower, na=False, regex=False) |
+        df_display["Cognome"].astype(str).str.lower().str.contains(search_lower, na=False, regex=False)
     ]
 
 with st.expander("🔍 Filtri avanzati", expanded=False):

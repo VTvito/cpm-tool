@@ -28,6 +28,7 @@ App disponibile su http://localhost:8501
 - Database SQLite locale con filtri, export anonimizzato, backup e restore
 - Report PDF singolo e ZIP batch
 - Gestione norme da CSV con fallback a valori di esempio
+- Shell UI condiviso con sidebar collassata di default e contrasto migliorato
 - Guida rapida consultabile direttamente nella home dell'app
 
 ## Norme
@@ -97,5 +98,7 @@ python tests/smoke_test.py
 - Dati salvati in `data/sessions.db`
 - PDF con font Helvetica: testo sanitizzato ASCII
 - Sidebar collassata di default per lasciare piu spazio utile alle pagine operative
+- Scoring ottimizzato per tastiera: valori `1-6`, passaggio rapido con `Tab`, calcolo solo al submit del form
 - Stato norme mostrato in sidebar; la pagina Norme serve per gestione CSV e consultazione
 - `tests/smoke_test.py` è pensato come controllo live rapido con server attivo su `localhost:8501`
+- Per robustezza di deploy su Streamlit Community Cloud, lo shell UI condiviso vive nel package `streamlit_ui/`
