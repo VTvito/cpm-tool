@@ -105,6 +105,7 @@ selected_label = st.selectbox(
     key="rpt_selected_label",
     on_change=_clear_report_pdf_state,
 )
+st.caption("Se il database cresce, usa cognome, nome e ID mostrati nell'elenco per individuare rapidamente il soggetto corretto.")
 selected = options[selected_label]
 st.session_state["rpt_selected_subject"] = selected
 result = subject_to_result(selected)
@@ -158,6 +159,7 @@ note_extra = st.text_area(
     key="rpt_note",
     on_change=_clear_report_pdf_state,
 )
+st.caption("Queste note vengono aggiunte solo al PDF generato, non modificano automaticamente il record originale nel database.")
 result.note = note_extra
 
 st.markdown("")
@@ -181,6 +183,7 @@ if st.session_state.get("rpt_pdf_bytes"):
         mime="application/pdf",
         width="stretch",
     )
+    st.info("Prossimo passo: se devi archiviare o condividere più report, usa la sezione batch qui sotto.", icon="➡️")
 
 if st.session_state.get("rpt_pdf_success"):
     st.success(f"✅ {st.session_state['rpt_pdf_success']}")
@@ -189,11 +192,12 @@ if st.session_state.get("rpt_pdf_success"):
 #  GENERAZIONE BATCH (ZIP multi-PDF)
 # ─────────────────────────────────────────
 st.divider()
-st.subheader("📦 Genera Report per Tutti i Soggetti")
-st.caption(
-    "Genera un file ZIP contenente un report PDF per ogni soggetto nel database. "
-    "Utile per archiviazione o stampa in blocco."
-)
+with st.expander("📦 Operazioni batch", expanded=False):
+    st.subheader("Genera Report per Tutti i Soggetti")
+    st.caption(
+        "Genera un file ZIP contenente un report PDF per ogni soggetto nel database. "
+        "Utile per archiviazione o stampa in blocco."
+    )
 
 
 def _on_generate_batch_zip():
@@ -231,22 +235,23 @@ def _on_generate_batch_zip():
     st.session_state["rpt_batch_count"] = count
 
 
-st.button(
-    "📦 Genera ZIP con Tutti i Report",
-    type="secondary",
-    key="rpt_btn_batch",
-    on_click=_on_generate_batch_zip,
-    disabled=not subjects,
-    width="stretch",
-)
-
-if st.session_state.get("rpt_batch_zip"):
-    count = st.session_state.get("rpt_batch_count", 0)
-    st.success(f"✅ {count} report generati!")
-    st.download_button(
-        f"⬇️ Scarica ZIP ({count} report)",
-        data=st.session_state["rpt_batch_zip"],
-        file_name="CPM_Report_Tutti.zip",
-        mime="application/zip",
+    st.button(
+        "📦 Genera ZIP con Tutti i Report",
+        type="secondary",
+        key="rpt_btn_batch",
+        on_click=_on_generate_batch_zip,
+        disabled=not subjects,
         width="stretch",
     )
+
+    if st.session_state.get("rpt_batch_zip"):
+        count = st.session_state.get("rpt_batch_count", 0)
+        st.success(f"✅ {count} report generati!")
+        st.download_button(
+            f"⬇️ Scarica ZIP ({count} report)",
+            data=st.session_state["rpt_batch_zip"],
+            file_name="CPM_Report_Tutti.zip",
+            mime="application/zip",
+            width="stretch",
+        )
+        st.caption("Usa il file ZIP per archiviazione, revisione con il team o stampa in blocco.")

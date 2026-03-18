@@ -58,7 +58,7 @@ using_placeholder = is_using_placeholder()
 
 if using_placeholder:
     st.warning(
-        "⚠️ **ATTENZIONE**: Le norme attualmente in uso sono **PLACEHOLDER di esempio**. "
+        "⚠️ **ATTENZIONE**: Le norme attualmente in uso sono **valori di esempio**. "
         "Prima di qualsiasi utilizzo clinico o di ricerca, è **obbligatorio** "
         "caricare i valori dal manuale ufficiale usando la sezione qui sotto.\n\n"
         "📖 Riferimento: Belacchi C., Scalisi T.G., Cannoni E., Cornoldi C. (2008). "
@@ -71,6 +71,7 @@ else:
         "I percentili vengono calcolati usando il file norme caricato.",
         icon="✅",
     )
+    st.caption("Se in futuro cambi manuale o versione delle norme, ricarica il CSV corrispondente prima di fare nuovo scoring.")
 
 # ─────────────────────────────────────────
 #  CARICAMENTO NORME DA CSV
@@ -116,6 +117,7 @@ with st.expander("📂 Carica / Gestisci Norme dal Manuale", expanded=using_plac
              "Punteggio Grezzo, Età 3, Età 4, …, Età 11",
         key="norm_csv_upload",
     )
+    st.caption("Il CSV viene validato prima del salvataggio. Se il formato non è corretto, il tool mostra un messaggio di errore senza sovrascrivere le norme correnti.")
     st.button(
         "📤 Carica e Applica Norme",
         type="primary",
@@ -136,62 +138,13 @@ with st.expander("📂 Carica / Gestisci Norme dal Manuale", expanded=using_plac
 
     if st.session_state.get("norm_upload_ok"):
         st.success(f"✅ {st.session_state['norm_upload_ok']}")
+        st.info("Prossimo passo: ora puoi usare le pagine **Scoring** o **Batch** con le norme caricate.", icon="➡️")
 
 st.divider()
-
-# ─────────────────────────────────────────
-#  TABELLA NORMATIVA
-# ─────────────────────────────────────────
-st.subheader("📊 Tabella Punteggio Grezzo → Percentile")
-
-norm_data = get_norm_table_as_dicts()
-df = pd.DataFrame(norm_data)
-
-# Colori per i percentili
-def color_percentile(val):
-    if val in ("<5", "5"):
-        return "background-color: #FADBD8"
-    elif val in ("10", "25"):
-        return "background-color: #FDEBD0"
-    elif val == "50":
-        return "background-color: #D5F5E3"
-    elif val in ("75", "90"):
-        return "background-color: #D6EAF8"
-    elif val in ("95", ">95"):
-        return "background-color: #D2B4DE"
-    return ""
-
-# Rileva le colonne età disponibili nel dataframe
-age_cols_available = [c for c in df.columns if c.startswith("Età ")]
-
-# Filtro per fascia d'età
-st.caption("Puoi filtrare per fascia d'età per una lettura più pulita:")
-selected_bands = st.multiselect(
-    "Mostra fasce d'età",
-    options=age_cols_available,
-    default=age_cols_available,
-    key="norm_filter",
-)
-
-cols_to_show = ["Punteggio Grezzo"] + selected_bands
-available_cols = [c for c in cols_to_show if c in df.columns]
-df_filtered = df[available_cols]
-
-styled = df_filtered.style.map(
-    color_percentile,
-    subset=[c for c in available_cols if c != "Punteggio Grezzo"],
-)
-
-st.dataframe(
-    styled,
-    width="stretch",
-    height=min(600, 50 + 35 * len(df_filtered)),
-)
 
 # ─────────────────────────────────────────
 #  CALCOLATORE RAPIDO
 # ─────────────────────────────────────────
-st.divider()
 st.subheader("🔢 Calcolatore Rapido")
 st.caption(
     "Inserisci un punteggio grezzo e una fascia d'età per ottenere subito il percentile."
@@ -223,6 +176,58 @@ c1, c2, c3 = st.columns(3)
 c1.metric("Punteggio", f"{raw} / 36")
 c2.metric("Percentile", pct)
 c3.metric("Classificazione", desc)
+st.caption("Il calcolatore rapido è utile per verifiche veloci. Per salvare un risultato, usa invece la pagina Scoring o Batch.")
+
+st.divider()
+
+# ─────────────────────────────────────────
+#  TABELLA NORMATIVA
+# ─────────────────────────────────────────
+st.subheader("📊 Tabella Punteggio Grezzo → Percentile")
+
+norm_data = get_norm_table_as_dicts()
+df = pd.DataFrame(norm_data)
+
+# Colori per i percentili
+def color_percentile(val):
+    if val in ("<5", "5"):
+        return "background-color: #FADBD8"
+    elif val in ("10", "25"):
+        return "background-color: #FDEBD0"
+    elif val == "50":
+        return "background-color: #D5F5E3"
+    elif val in ("75", "90"):
+        return "background-color: #D6EAF8"
+    elif val in ("95", ">95"):
+        return "background-color: #D2B4DE"
+    return ""
+
+# Rileva le colonne età disponibili nel dataframe
+age_cols_available = [c for c in df.columns if c.startswith("Età ")]
+
+with st.expander("📄 Consulta la tabella completa", expanded=False):
+    st.caption("Puoi filtrare per fascia d'età per una lettura più pulita:")
+    selected_bands = st.multiselect(
+        "Mostra fasce d'età",
+        options=age_cols_available,
+        default=age_cols_available,
+        key="norm_filter",
+    )
+
+    cols_to_show = ["Punteggio Grezzo"] + selected_bands
+    available_cols = [c for c in cols_to_show if c in df.columns]
+    df_filtered = df[available_cols]
+
+    styled = df_filtered.style.map(
+        color_percentile,
+        subset=[c for c in available_cols if c != "Punteggio Grezzo"],
+    )
+
+    st.dataframe(
+        styled,
+        width="stretch",
+        height=min(600, 50 + 35 * len(df_filtered)),
+    )
 
 # ─────────────────────────────────────────
 #  LEGENDA

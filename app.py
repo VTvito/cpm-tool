@@ -66,13 +66,14 @@ with st.expander("📘 Guida rapida all'uso", expanded=False):
             """
         )
 
+st.markdown("### Percorsi rapidi")
 guide_col1, guide_col2, guide_col3 = st.columns(3)
 with guide_col1:
-    st.info("**Primo utilizzo**\n\nParti dalla pagina **📏 Norme** se devi caricare i valori ufficiali del manuale.")
+    st.info("**Devo iniziare**\n\nCarica le norme ufficiali in **📏 Norme** se non vuoi usare valori di esempio.")
 with guide_col2:
-    st.info("**Uso quotidiano**\n\nPer un solo soggetto usa **📝 Scoring**. Per file di ricerca usa **📊 Batch**.")
+    st.info("**Devo fare scoring**\n\nUsa **📝 Scoring** per un soggetto o **📊 Batch** per un file con più soggetti.")
 with guide_col3:
-    st.info("**Output**\n\nIl database conserva i risultati. I report PDF si generano dalla pagina **📄 Report**.")
+    st.info("**Devo esportare**\n\nI risultati si ritrovano in **🗄️ Database** e i PDF si generano in **📄 Report**.")
 
 st.divider()
 
@@ -118,6 +119,8 @@ with col3:
         st.page_link("pages/5_📏_Norme.py", label="Norme →", icon="📏")
 
 st.divider()
+
+st.caption("Se non sai da dove partire: **Norme -> Scoring o Batch -> Database -> Report**")
 
 # ── Info box ──────────────────────────────
 from core.norms import is_using_placeholder

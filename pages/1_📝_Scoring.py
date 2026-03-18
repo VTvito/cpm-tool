@@ -131,10 +131,12 @@ with st.expander("ℹ️ Come usare questa pagina", expanded=False):
 
 if is_using_placeholder():
     st.warning(
-        "⚠️ Le norme in uso sono **placeholder di esempio**. "
+        "⚠️ Le norme in uso sono **valori di esempio**. "
         "Carica le norme reali dalla pagina **📏 Norme** prima dell'uso clinico.",
         icon="⚠️",
     )
+else:
+    st.success("✅ Norme personalizzate attive.", icon="✅")
 
 
 
@@ -155,6 +157,7 @@ with st.expander("👤 Dati del Soggetto", expanded=True):
             format="DD/MM/YYYY",
             key="sc_dn",
         )
+        st.caption("Serve per calcolare età e percentile nella fascia corretta.")
         st.date_input(
             "Data somministrazione",
             value=date.today(),
@@ -202,6 +205,7 @@ st.caption(
     "Lascia vuoto se l'item non è stato risposto. "
     "Usa **Tab** per spostarti rapidamente tra le celle."
 )
+st.caption("Suggerimento: compila i set da sinistra a destra e usa il contatore sotto per controllare il numero di item inseriti.")
 
 set_configs = [
     ("Set A", "A", "#D6EAF8"),
@@ -258,16 +262,17 @@ for set_key in ["A", "Ab", "B"]:
                 answered += 1
 st.caption(f"Item compilati: **{answered}** / 36")
 
-st.text_area(
-    "📝 Note / Osservazioni (opzionale)",
-    key="sc_note",
-    placeholder="Aggiungi eventuali note sul soggetto o la somministrazione...",
-)
+with st.expander("📝 Note / Osservazioni opzionali", expanded=False):
+    st.text_area(
+        "Note cliniche o di somministrazione",
+        key="sc_note",
+        placeholder="Aggiungi eventuali note sul soggetto o la somministrazione...",
+    )
 
 has_result = "last_result" in st.session_state
 has_invalid_dates = bool(data_nascita and data_somm and data_nascita > data_somm)
 
-btn_col1, btn_col2, btn_col3, btn_col4 = st.columns(4)
+btn_col1, btn_col2, btn_col3 = st.columns(3)
 with btn_col1:
     st.button(
         "🧮 Calcola Score", type="primary", width="stretch",
@@ -283,8 +288,6 @@ with btn_col3:
         "🔄 Nuovo Soggetto", width="stretch",
         key="btn_reset", on_click=_on_reset,
     )
-with btn_col4:
-    pdf_slot = st.empty()
 
 # ─────────────────────────────────────────
 #  MESSAGGI
@@ -295,6 +298,11 @@ if st.session_state.get("calc_error"):
 if "save_msg" in st.session_state:
     st.toast(st.session_state["save_msg"], icon="✅")
     st.success(f"✅ {st.session_state['save_msg']}")
+    next_col1, next_col2 = st.columns(2)
+    with next_col1:
+        st.page_link("pages/3_🗄️_Database.py", label="Apri Database", icon="🗄️")
+    with next_col2:
+        st.page_link("pages/4_📄_Report.py", label="Vai ai Report", icon="📄")
 
 # ─────────────────────────────────────────
 #  RISULTATI
@@ -304,6 +312,16 @@ if "last_result" in st.session_state:
 
     st.divider()
     st.subheader("🎯 Risultati")
+
+    summary_bits = [f"Totale {result.total_raw}/36"]
+    if result.age_band:
+        summary_bits.append(f"fascia {result.age_band}")
+        summary_bits.append(f"percentile {result.percentile}")
+    if result.discrepancy_flag:
+        summary_bits.append(f"discrepanza {result.discrepancy_flag}")
+    else:
+        summary_bits.append("discrepanza assente o nei limiti")
+    st.success("Risultato principale: " + " • ".join(summary_bits))
 
     r1, r2, r3, r4 = st.columns(4)
     r1.metric("Set A", f"{result.set_a_score} / 12")
@@ -317,6 +335,7 @@ if "last_result" in st.session_state:
             st.metric("Percentile", result.percentile)
         with p2:
             st.metric("Descrizione", result.description)
+        st.caption("Il percentile confronta il soggetto con la fascia d'età selezionata dalle date inserite.")
     else:
         st.info(
             "ℹ️ Inserisci le date di nascita e somministrazione per ottenere "
@@ -337,26 +356,28 @@ if "last_result" in st.session_state:
             "La differenza tra i set è lievemente elevata.",
             icon="🟡",
         )
+    else:
+        st.caption("Discrepanza: differenza tra i tre set. Se non compare un avviso, il profilo è sostanzialmente omogeneo.")
 
-    # ── GRAFICI ─────────────────────────
+    # ── GRAFICI PRINCIPALI ──────────────
     st.divider()
-    st.subheader("📊 Grafici")
+    st.subheader("📊 Lettura rapida")
 
     g1, g2 = st.columns(2)
     with g1:
         st.plotly_chart(bar_chart_sets(result), width="stretch")
     with g2:
-        st.plotly_chart(radar_chart(result), width="stretch")
-
-    g3, g4 = st.columns(2)
-    with g3:
-        if result.age_band:
-            st.plotly_chart(percentile_gauge(result.percentile),
-                            width="stretch")
-        else:
-            st.caption("Gauge percentile non disponibile (manca la fascia d'età).")
-    with g4:
         st.plotly_chart(item_heatmap(result), width="stretch")
+
+    with st.expander("📈 Approfondimento grafico", expanded=False):
+        g3, g4 = st.columns(2)
+        with g3:
+            st.plotly_chart(radar_chart(result), width="stretch")
+        with g4:
+            if result.age_band:
+                st.plotly_chart(percentile_gauge(result.percentile), width="stretch")
+            else:
+                st.caption("Gauge percentile non disponibile (manca la fascia d'età).")
 
     # ── PDF download ────────────────────
     try:
@@ -374,7 +395,7 @@ if "last_result" in st.session_state:
 
         pdf_bytes = generate_pdf(result, chart_imgs)
         fn = f"CPM_Report_{result.cognome}_{result.nome}.pdf" if result.cognome else "CPM_Report.pdf"
-        pdf_slot.download_button(
+        st.download_button(
             "📄 Scarica PDF",
             data=pdf_bytes,
             file_name=fn,
@@ -382,7 +403,11 @@ if "last_result" in st.session_state:
             width="stretch",
             key="btn_pdf",
         )
+        st.info(
+            "Prossimi passi: puoi salvare il risultato nel database, scaricare il PDF oppure iniziare un nuovo soggetto.",
+            icon="➡️",
+        )
     except Exception as e:
-        pdf_slot.caption(f"⚠️ PDF: {e}")
+        st.caption(f"⚠️ PDF: {e}")
 else:
     st.info("👆 Compila le risposte e premi **Calcola Score** per vedere i risultati.")

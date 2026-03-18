@@ -103,6 +103,11 @@ if not subjects:
 
 df = pd.DataFrame(subjects)
 
+metric_col1, metric_col2, metric_col3 = st.columns(3)
+metric_col1.metric("Record salvati", len(df))
+metric_col2.metric("Media totale", round(df["total_raw"].mean(), 1) if not df.empty else 0)
+metric_col3.metric("Ultimo inserimento", df.iloc[0]["created_at"][:10] if not df.empty and df.iloc[0]["created_at"] else "-")
+
 # Rinomina colonne per leggibilità
 col_rename = {
     "id": "ID",
@@ -136,6 +141,7 @@ search_text = st.text_input(
     key="db_search",
     placeholder="Es: Rossi, Marco, ...",
 )
+st.caption("Usa la ricerca rapida per ritrovare un soggetto. I filtri avanzati sono utili soprattutto su archivi più grandi.")
 if search_text:
     search_lower = search_text.lower()
     df_display = df_display[
@@ -180,9 +186,8 @@ st.markdown(f"**{len(df_display)}** soggetti trovati")
 # ─────────────────────────────────────────
 #  TABELLA
 # ─────────────────────────────────────────
-display_cols = ["ID", "Cognome", "Nome", "Fascia Età", "Sesso",
-                "Esaminatore", "Set A", "Set Ab", "Set B", "Totale",
-                "Percentile", "Descrizione", "Note", "Data Inserimento"]
+display_cols = ["ID", "Cognome", "Nome", "Fascia Età", "Totale",
+                "Percentile", "Descrizione", "Data Inserimento"]
 available = [c for c in display_cols if c in df_display.columns]
 
 st.dataframe(
@@ -200,6 +205,11 @@ st.dataframe(
             "Totale", min_value=0, max_value=36, format="%d/36"),
     },
 )
+
+with st.expander("📄 Mostra colonne aggiuntive", expanded=False):
+    extra_cols = [c for c in ["Sesso", "Esaminatore", "Set A", "Set Ab", "Set B", "Note"] if c in df_display.columns]
+    if extra_cols:
+        st.dataframe(df_display[["ID", "Cognome", "Nome", *extra_cols]], width="stretch", height=min(400, 50 + 35 * len(df_display)))
 
 # ─────────────────────────────────────────
 #  STATISTICHE
@@ -219,6 +229,7 @@ st.divider()
 #  EXPORT
 # ─────────────────────────────────────────
 st.subheader("📥 Esporta Dati")
+st.caption("Per la condivisione con altri ricercatori, preferisci l'export anonimizzato.")
 col_e1, col_e2, col_e3 = st.columns(3)
 
 with col_e1:
@@ -269,7 +280,10 @@ with col_e3:
 #  ELIMINAZIONE
 # ─────────────────────────────────────────
 st.divider()
-with st.expander("🗑️ Elimina un Record", expanded=False):
+with st.expander("🛠️ Operazioni avanzate", expanded=False):
+    st.markdown("Le azioni seguenti sono utili per manutenzione o correzioni puntuali del database.")
+
+    st.markdown("#### 🗑️ Elimina un Record")
     st.warning("⚠️ L'eliminazione è permanente e non può essere annullata.")
     ids_available = df_display["ID"].tolist() if "ID" in df_display.columns else []
     del_id = st.selectbox(
@@ -286,42 +300,40 @@ with st.expander("🗑️ Elimina un Record", expanded=False):
         width="stretch",
     )
 
-# ─────────────────────────────────────────
-#  BACKUP / RESTORE
-# ─────────────────────────────────────────
-st.divider()
-st.subheader("💾 Backup e Ripristino Database")
+    st.divider()
+    st.markdown("#### 💾 Backup e Ripristino Database")
 
-bk_col1, bk_col2 = st.columns(2)
-with bk_col1:
-    st.markdown("**Scarica una copia di backup** del database per sicurezza.")
-    if DB_PATH.is_file():
-        st.download_button(
-            "⬇️ Scarica Backup Database",
-            data=DB_PATH.read_bytes(),
-            file_name="CPM_Database_Backup.db",
-            mime="application/octet-stream",
-            width="stretch",
+    bk_col1, bk_col2 = st.columns(2)
+    with bk_col1:
+        st.markdown("**Scarica una copia di backup** del database per sicurezza.")
+        if DB_PATH.is_file():
+            st.download_button(
+                "⬇️ Scarica Backup Database",
+                data=DB_PATH.read_bytes(),
+                file_name="CPM_Database_Backup.db",
+                mime="application/octet-stream",
+                width="stretch",
+            )
+
+    with bk_col2:
+        st.markdown("**Ripristina** un backup precedente (sovrascrive i dati attuali).")
+        restore_file = st.file_uploader(
+            "Carica file .db di backup",
+            type=["db"],
+            key="db_restore_upload",
+            on_change=_on_restore_upload_change,
         )
-
-with bk_col2:
-    st.markdown("**Ripristina** un backup precedente (sovrascrive i dati attuali).")
-    restore_file = st.file_uploader(
-        "Carica file .db di backup",
-        type=["db"],
-        key="db_restore_upload",
-        on_change=_on_restore_upload_change,
-    )
-    st.button(
-        "⚠️ Ripristina Database da Backup",
-        type="secondary",
-        key="db_btn_restore",
-        width="stretch",
-        on_click=_on_restore_database,
-        disabled=restore_file is None,
-    )
-    if st.session_state.get("db_restore_error"):
-        st.error(st.session_state["db_restore_error"])
-    if st.session_state.get("db_restore_msg"):
-        st.toast("Database ripristinato dal backup!", icon="✅")
-        st.success(st.session_state["db_restore_msg"])
+        st.button(
+            "⚠️ Ripristina Database da Backup",
+            type="secondary",
+            key="db_btn_restore",
+            width="stretch",
+            on_click=_on_restore_database,
+            disabled=restore_file is None,
+        )
+        if st.session_state.get("db_restore_error"):
+            st.error(st.session_state["db_restore_error"])
+        if st.session_state.get("db_restore_msg"):
+            st.toast("Database ripristinato dal backup!", icon="✅")
+            st.success(st.session_state["db_restore_msg"])
+            st.info("Prossimo passo: ricarica la pagina e verifica subito il numero di record presenti nel database.", icon="➡️")

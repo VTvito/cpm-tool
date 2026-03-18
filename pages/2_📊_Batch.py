@@ -177,6 +177,7 @@ st.markdown(
     "Ogni riga è un soggetto, ogni colonna un item (A1–B12). "
     "Le date possono essere in formato **GG/MM/AAAA** o **AAAA-MM-GG**."
 )
+st.caption("Per ridurre errori, non rinominare le colonne del template e non modificare i codici item.")
 
 all_items = []
 for set_name in ["A", "Ab", "B"]:
@@ -233,6 +234,9 @@ if upload_error:
     st.error(f"❌ {upload_error}")
 elif preview_df is not None:
     st.success(f"✅ File caricato: **{len(preview_df)}** soggetti trovati.")
+    checklist_col1, checklist_col2, checklist_col3 = st.columns(3)
+    checklist_col1.success("File letto")
+    checklist_col2.success(f"{len(preview_df)} righe trovate")
 
     # Anteprima
     with st.expander("👀 Anteprima dati caricati", expanded=False):
@@ -241,11 +245,14 @@ elif preview_df is not None:
     # Verifica colonne item
     missing_items = [item for item in ALL_ITEMS if item not in preview_df.columns]
     if missing_items:
+        checklist_col3.error("Colonne item mancanti")
         st.error(
             f"❌ Colonne mancanti nel file: **{', '.join(missing_items[:10])}**"
             + (" …" if len(missing_items) > 10 else "")
             + "\n\nAssicurati di usare il template fornito."
         )
+    else:
+        checklist_col3.success("Struttura file valida")
 
 st.divider()
 
@@ -278,11 +285,13 @@ if st.session_state.get("batch_error"):
 
 if st.session_state.get("batch_save_msg"):
     st.success(f"✅ {st.session_state['batch_save_msg']}")
+    st.page_link("pages/3_🗄️_Database.py", label="Apri Database", icon="🗄️")
 
 results_df = st.session_state.get("batch_results_df")
 if results_df is not None:
     # ── TABELLA RISULTATI ───────────
     st.subheader("📋 Risultati")
+    st.info("Prossimi passi: puoi esportare i risultati oppure salvarli nel database per generare i report in seguito.", icon="➡️")
 
     st.dataframe(
         results_df,
