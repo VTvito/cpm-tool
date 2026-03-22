@@ -1,0 +1,24 @@
+# Esclude file non necessari nell'immagine Docker → build più piccola e veloce
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+
+# Ambiente virtuale locale
+.venv/
+venv/
+
+# Dati runtime: montati dal volume Fly.io (non devono finire nell'immagine)
+data/
+
+# Test: non servono in produzione
+tests/
+
+# File di sviluppo
+.git/
+.gitignore
+*.md
+samples/
+
+# Secrets Streamlit (non committare mai questo file)
+.streamlit/secrets.toml

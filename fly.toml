@@ -1,0 +1,40 @@
+# fly.toml — CPM Scoring Tool
+# Documentazione: https://fly.io/docs/reference/configuration/
+#
+# PRIMA DEL DEPLOY:
+#   1. Cambia "app" con il nome che hai scelto su Fly.io
+#   2. Crea il volume persistente (una tantum):
+#        fly volumes create cpm_data --region fra --size 1
+#   3. Poi: fly deploy
+
+app = "cpm-scoring"        # <-- sostituisci con il tuo nome app (deve essere unico su fly.io)
+primary_region = "fra"     # Frankfurt — il più vicino all'Italia
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  STREAMLIT_SERVER_HEADLESS       = "true"
+  STREAMLIT_BROWSER_GATHER_USAGE_STATS = "false"
+
+[http_service]
+  internal_port        = 8501
+  force_https          = true
+  auto_stop_machines   = true   # VM si spegne quando inattiva → risparmia le ore free
+  auto_start_machines  = true   # si risveglia automaticamente alla prima richiesta HTTP
+  min_machines_running = 0      # nessuna macchina sempre accesa → pienamente gratuito
+
+  [http_service.concurrency]
+    type       = "requests"
+    hard_limit = 25
+    soft_limit = 20
+
+# Volume persistente: SQLite (sessions.db) e norms.csv sopravvivono ai deploy/riavvii
+[[mounts]]
+  source      = "cpm_data"   # nome del volume Fly.io (creato con fly volumes create)
+  destination = "/app/data"  # corrisponde alla directory data/ dell'app
+
+[[vm]]
+  memory   = "256mb"   # tier gratuito; 256 MB sufficienti
+  cpu_kind = "shared"
+  cpus     = 1
