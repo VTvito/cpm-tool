@@ -44,14 +44,17 @@ Target principale:
 ### 4. Report PDF
 - generazione singola da record DB
 - ZIP batch per tutti i soggetti
-- grafici inclusi se `kaleido` è disponibile
 - testo sanitizzato ASCII per compatibilità `fpdf2` + Helvetica
+- grafici disponibili solo nell'interfaccia Streamlit (Plotly interattivo), non inclusi nel PDF
 
 ### 5. Norme
 - fallback con valori di esempio integrato
+- fasce d'età semestrali: notazione `anni;mesi` (es. `3;0-3;6`, `3;6-4;0` … `11;6-12;0`) + `Adulti` + `Anziani`
+- `compute_age()` calcola età in (anni, mesi) con precisione al giorno
+- `age_to_band()` mappa l'età alla fascia semestrale corretta
 - caricamento Excel (.xlsx/.xls) o CSV da pagina Norme; Excel convertito in CSV internamente
 - download norme in formato Excel (template e norme attive)
-- mapping delle colonne età guidato dagli header CSV
+- mapping delle colonne età guidato dagli header CSV (notazione `N;M-N;M`)
 - download norme attuali e reset ai valori di esempio
 
 ### 6. Guida utente
@@ -68,12 +71,11 @@ Target principale:
 - `streamlit_ui/shell.py` e `app.py` inseriscono la root del progetto in `sys.path`
   per compatibilità con Streamlit Cloud (CWD non garantito = root progetto)
 - CSV export con BOM UTF-8 (`utf-8-sig`) per apertura corretta in Excel su Windows
-- `packages.txt` lista i pacchetti apt per kaleido 1.x su Linux (Streamlit Cloud):
-  `libgbm1`, `libnss3`, `libatk-bridge2.0-0`, `libasound2`, `libxss1`, `libxrandr2` — necessari al backend `choreographer` usato da kaleido ≥ 1.0
+- `packages.txt` vuoto (nessuna dipendenza di sistema richiesta)
 
 ### 8. File di test e campioni
-- `samples/batch_test.csv`: 6 soggetti con punteggi variati (perfetto, buono, medio, basso, molto basso, discrepanza significativa Δ=8) per test caricamento batch
-- `samples/norms_test.csv`: tabella norme con fasce Età 5-11 + Adulti, 17 righe, formato compatibile con la pagina Norme
+- `samples/batch_test.xlsx`: 9 soggetti con età da 3;0 a Adulti, punteggi variati e caso discrepanza, per test caricamento batch
+- `samples/norms_test.xlsx`: tabella norme con 20 fasce semestrali (3;0-3;6 … 11;6-12;0 + Adulti + Anziani), 19 righe, formato compatibile con la pagina Norme
 
 ## Vincoli operativi
 
@@ -100,7 +102,7 @@ tests/               pytest + Playwright
 - pulsanti Streamlit sempre nel widget tree, con `on_click` e `disabled`
 - nella pagina Scoring gli input risposta sono campi compatti `1-6` organizzati in 3 colonne; il calcolo avviene tramite form submit per evitare rerun continui durante la digitazione
 - la UI condivisa vive nel package `streamlit_ui/`; evitare helper top-level isolati quando devono essere importati da tutte le pagine, per ridurre problemi di import/reload in deploy cloud
-- le norme CSV si validano prima del salvataggio e si mappano per header, non per posizione
+- le norme CSV si validano prima del salvataggio e si mappano per header (notazione `N;M-N;M`), non per posizione
 - UI leggera: niente expander "come usare questa pagina" — le istruzioni sono nella Guida; niente info box "prossimo passo" dopo ogni azione
 - stato norme (placeholder / personalizzate) visibile nella sidebar, non ripetuto in ogni pagina
 - sidebar scura (navy) con navigazione completa (`st.page_link` per tutte le 5 pagine + Home) e stato norme; `initial_sidebar_state="auto"` — espansa su desktop
@@ -110,7 +112,7 @@ tests/               pytest + Playwright
 
 ## Qualità attuale verificata
 
-- unit test `pytest`: 49 passati
+- unit test `pytest`: 50 passati
 - smoke test ed E2E browser integrati in `pytest` tramite marker dedicati (`smoke`, `e2e`) ed esclusi dal giro standard per non rallentare lo sviluppo
 - E2E Playwright: passati sui flussi Home, Batch, Database, Report, Norme e sui controlli principali della pagina Scoring
 - copertura Report in E2E: generazione PDF singolo verificata; per il batch ZIP è verificata la raggiungibilità del controllo UI, non il tempo di completamento end-to-end

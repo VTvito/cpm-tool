@@ -38,6 +38,8 @@ Questa applicazione aiuta a gestire lo scoring CPM in modo semplice, locale e ad
 
 ### 📏 Norme
 - Controlla se il tool sta usando valori di esempio o norme personalizzate.
+- Le fasce d'età sono semestrali: `3;0-3;6` significa da 3 anni e 0 mesi a 3 anni e 5 mesi.
+- L'età viene calcolata automaticamente in anni e mesi dalla data di nascita e somministrazione.
 - Carica il file Excel (o CSV) del manuale seguendo il template fornito.
 - Scarica il template Excel per compilarlo offline, poi ricaricalo.
 - Usa il calcolatore rapido per un controllo veloce di punteggio e percentile.

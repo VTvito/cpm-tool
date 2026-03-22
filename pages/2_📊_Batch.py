@@ -11,6 +11,7 @@ import pandas as pd
 
 from core.answer_key import SETS, ANSWER_KEY
 from core.scoring import score_with_norms, normalize_response
+from core.norms import compute_age
 from core.database import save_result
 from streamlit_ui import configure_page
 
@@ -68,15 +69,13 @@ def _build_batch_results(df: pd.DataFrame, all_items: list[str]) -> tuple[list[t
         for item in all_items:
             responses[item] = normalize_response(row.get(item))
 
-        eta = None
+        eta_anni, eta_mesi = None, 0
         dn = _parse_batch_date(row.get("DataNascita"))
         ds = _parse_batch_date(row.get("DataSomministrazione"))
         if dn and ds:
-            eta = ds.year - dn.year
-            if (ds.month, ds.day) < (dn.month, dn.day):
-                eta -= 1
+            eta_anni, eta_mesi = compute_age(dn, ds)
 
-        result = score_with_norms(responses, age=eta)
+        result = score_with_norms(responses, age_years=eta_anni, age_months=eta_mesi)
         result.nome = str(row.get("Nome", ""))
         result.cognome = str(row.get("Cognome", ""))
         result.sesso = str(row.get("Sesso", ""))
@@ -303,6 +302,8 @@ if results_df is not None:
     st.divider()
 
     # ── EXPORT ──────────────────────
+    st.subheader("📥 Esporta Risultati")
+
     col_exp1, col_exp2 = st.columns(2)
 
     with col_exp1:
@@ -325,4 +326,37 @@ if results_df is not None:
             file_name="CPM_Risultati_Batch.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             width="stretch",
+        )
+
+    # ── EXPORT ANONIMIZZATO ─────────
+    def _anon_batch(src: pd.DataFrame) -> pd.DataFrame:
+        df_a = src.copy()
+        if "Nome" in df_a.columns:
+            df_a["Nome"] = [f"S{i+1:03d}" for i in range(len(df_a))]
+        if "Cognome" in df_a.columns:
+            df_a["Cognome"] = ""
+        return df_a
+
+    col_anon1, col_anon2 = st.columns(2)
+    with col_anon1:
+        csv_anon = _anon_batch(results_df).to_csv(index=False).encode("utf-8-sig")
+        st.download_button(
+            "🔒 Anonimizzato (CSV)",
+            data=csv_anon,
+            file_name="CPM_Risultati_Batch_Anonimo.csv",
+            mime="text/csv",
+            width="stretch",
+            help="Nomi sostituiti da codici (S001, S002, …).",
+        )
+    with col_anon2:
+        buf_anon = io.BytesIO()
+        with pd.ExcelWriter(buf_anon, engine="openpyxl") as writer:
+            _anon_batch(results_df).to_excel(writer, index=False, sheet_name="Risultati Anonimi")
+        st.download_button(
+            "🔒 Anonimizzato (Excel)",
+            data=buf_anon.getvalue(),
+            file_name="CPM_Risultati_Batch_Anonimo.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            width="stretch",
+            help="Nomi sostituiti da codici (S001, S002, …).",
         )

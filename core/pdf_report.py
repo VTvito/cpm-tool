@@ -7,13 +7,9 @@ Usa fpdf2 (pure Python, zero dipendenze di sistema).
 
 from __future__ import annotations
 
-import io
-import tempfile
-from pathlib import Path
-
 from fpdf import FPDF
 
-from core.answer_key import SETS, ANSWER_KEY
+from core.answer_key import SETS
 from core.norms import is_using_placeholder
 from core.scoring import ScoringResult
 
@@ -91,13 +87,11 @@ def _safe(val) -> str:
 
 def generate_pdf(
     result: ScoringResult,
-    chart_images: dict[str, bytes] | None = None,
 ) -> bytes:
     """Genera il PDF e restituisce i bytes.
 
     Args:
         result: ScoringResult con tutti i dati.
-        chart_images: dict opzionale {"bar": png_bytes, "radar": png_bytes, …}.
     """
     using_placeholder = is_using_placeholder()
     pdf = CPMReport()
@@ -236,27 +230,6 @@ def generate_pdf(
         pdf.ln()
 
     pdf.ln(3)
-
-    # ── GRAFICI (se forniti) ────────────────
-    if chart_images:
-        pdf.add_page()
-        pdf.set_font("Helvetica", "B", 13)
-        pdf.set_fill_color(*CPMReport._TEAL)
-        pdf.set_text_color(*CPMReport._WHITE)
-        pdf.cell(0, 9, _sanitize("  Grafici"), fill=True, new_x="LMARGIN", new_y="NEXT")
-        pdf.ln(3)
-
-        for name, img_bytes in chart_images.items():
-            tmp_path = None
-            try:
-                with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
-                    tmp_path = tmp.name
-                    tmp.write(img_bytes)
-                pdf.image(tmp_path, w=170)
-                pdf.ln(5)
-            finally:
-                if tmp_path:
-                    Path(tmp_path).unlink(missing_ok=True)
 
     # ── NOTE ────────────────────────────────
     if result.note:

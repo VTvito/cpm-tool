@@ -122,17 +122,18 @@ def score_responses(responses: Mapping[str, int | None]) -> ScoringResult:
 
 def score_with_norms(
     responses: Mapping[str, int | None],
-    age: int | float | None = None,
+    age_years: int | None = None,
+    age_months: int = 0,
     age_band: str | None = None,
 ) -> ScoringResult:
     """Calcola lo scoring e aggiunge percentile + descrizione qualitativa.
 
     Se viene fornito `age_band` direttamente viene usato quello.
-    Altrimenti viene calcolato da `age`.
+    Altrimenti viene calcolato da `age_years` e `age_months`.
     """
     result = score_responses(responses)
 
-    band = age_band if age_band else age_to_band(age)
+    band = age_band if age_band else age_to_band(age_years, age_months)
     result.age_band = band
 
     if band:

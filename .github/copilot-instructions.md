@@ -11,7 +11,7 @@ Language: Italian UI, Italian code comments, English code identifiers.
 | Component | Technology | Version Notes |
 |-----------|------------|---------------|
 | Framework | Streamlit | ≥ 1.55, multi-page via `pages/` directory |
-| Charts | Plotly | Interactive; kaleido for PNG export to PDF |
+| Charts | Plotly | Interactive; rendered in-browser via Streamlit |
 | PDF | fpdf2 | Helvetica only — **no Unicode** (use `_sanitize()`) |
 | Database | SQLite | Single-file at `data/sessions.db` |
 | Data | pandas | **Must be < 3.0** (Streamlit incompatibility) |
@@ -39,11 +39,11 @@ pages/                  # Streamlit pages (auto-discovered)
   5_📏_Norme.py         # Normative tables viewer + Excel/CSV upload and management
 data/                   # Runtime data (gitignored)
 tests/                  # Tests
-  test_core.py          # pytest unit tests for core/ (49 tests)
+  test_core.py          # pytest unit tests for core/ (50 tests)
   test_playwright.py    # Playwright E2E tests
 samples/               # File di test pronti all'uso
-  batch_test.csv        #   6 soggetti con punteggi variati + 1 caso discrepanza
-  norms_test.csv        #   tabella norme Età 5-11 + Adulti (17 punteggi)
+  batch_test.xlsx       #   9 soggetti con età da 3;0 a Adulti + caso discrepanza
+  norms_test.xlsx       #   tabella norme 20 fasce semestrali 3;0-12;0 + Adulti + Anziani
 ```
 
 **Separation rule**: `core/` modules must NEVER import `streamlit`. All Streamlit interactions stay in `pages/` and `app.py`.
@@ -95,11 +95,17 @@ fpdf2 with Helvetica font cannot render Unicode. Always sanitize text through `c
 
 ### Normative Tables
 
-Norms default to **PLACEHOLDER** values in `core/norms.py`. If a `data/norms.csv` file exists, norms are loaded from CSV instead. Users manage norms via the **📏 Norme** page (upload/download/reset). Key functions:
+Norms default to **PLACEHOLDER** values in `core/norms.py`. If a `data/norms.csv` file exists, norms are loaded from CSV instead. Users manage norms via the **📏 Norme** page (upload/download/reset).
+
+Age bands use **6-month intervals** in `anni;mesi` notation (e.g. `3;0-3;6`, `3;6-4;0`, … `11;6-12;0`, plus `Adulti` and `Anziani`).
+
+Key functions:
 - `load_norm_table()` — returns current norms (CSV or placeholder)
 - `save_norms_csv(bytes)` — validates and saves uploaded CSV
 - `is_using_placeholder()` — True if CSV is absent/invalid
 - `get_norms_csv_path()` — returns the Path to the CSV file
+- `compute_age(birth_date, test_date)` — returns `(years, months)` with day precision
+- `age_to_band(age_years, age_months)` — maps age to the correct 6-month band
 
 ### Scoring & Discrepancy
 
@@ -116,8 +122,7 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-> **Streamlit Cloud deploy**: `packages.txt` lists Linux apt packages required for kaleido 1.x
-> (`libgbm1`, `libnss3`, `libatk-bridge2.0-0`, `libasound2`, `libxss1`, `libxrandr2` — choreographer backend). No comments allowed in `packages.txt`.
+> **Streamlit Cloud deploy**: `packages.txt` can list Linux apt packages if needed. Currently empty (no system dependencies required).
 
 ## Testing
 

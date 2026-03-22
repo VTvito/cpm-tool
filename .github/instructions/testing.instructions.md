@@ -6,7 +6,7 @@ applyTo: "tests/**/*.py"
 
 ## Unit Tests (pytest)
 
-File: `tests/test_core.py` — 49 tests covering all `core/` modules.
+File: `tests/test_core.py` — 50 tests covering all `core/` modules.
 
 ### Running
 ```bash
@@ -19,7 +19,7 @@ python -m pytest tests/test_core.py -v
 - Database tests use `autouse` fixture to create a fresh temp DB per test.
 
 ### Adding Tests
-- For scoring edge cases, use `score_responses()` (pure) or `score_with_norms()` (with percentile).
+- For scoring edge cases, use `score_responses()` (pure) or `score_with_norms(age_years=N, age_months=M)` (with percentile).
 - Prefer exercising `normalize_response()` behavior through `score_responses()` inputs rather than testing UI-only logic.
 - For PDF tests, assert `isinstance(result, bytes)` and check PDF header `b"%PDF-"`.
 - For norms CSV tests, use `monkeypatch.setattr("core.norms._NORMS_CSV_PATH", tmp_path / "norms.csv")`.

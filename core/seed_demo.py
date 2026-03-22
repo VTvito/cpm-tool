@@ -12,6 +12,7 @@ from datetime import date
 
 from core.answer_key import ANSWER_KEY, SETS
 from core.database import is_db_empty, save_result
+from core.norms import compute_age
 from core.scoring import score_with_norms
 
 # ── Item labels per set ──────────────────────────────────────────────────────
@@ -115,12 +116,10 @@ def seed_if_empty() -> int:
 
     count = 0
     for nome, cognome, dn, ds, sesso, esaminatore, pattern_fn, note in _DEMO_SUBJECTS:
-        eta = ds.year - dn.year
-        if (ds.month, ds.day) < (dn.month, dn.day):
-            eta -= 1
+        eta_anni, eta_mesi = compute_age(dn, ds)
 
         responses = pattern_fn()
-        result = score_with_norms(responses, age=eta)
+        result = score_with_norms(responses, age_years=eta_anni, age_months=eta_mesi)
         result.nome = nome
         result.cognome = cognome
         result.data_nascita = dn

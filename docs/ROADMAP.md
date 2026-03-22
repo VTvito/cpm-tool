@@ -14,11 +14,11 @@ Deploy su Streamlit Cloud attivo (2026-03-18): auto-seed 15 soggetti demo al col
 (DB vuoto), fix `sys.path` per compatibilità cloud, CSV export con BOM per Excel,
 template batch in formato Excel.
 
-Qualità verificata con 49 test standard + smoke/E2E browser separati sui flussi principali di tutte le pagine.
+Qualità verificata con 50 test standard + smoke/E2E browser separati sui flussi principali di tutte le pagine.
 
-File di test inclusi in `samples/`: `batch_test.csv` (6 soggetti, inclusa discrepanza) e `norms_test.csv` (8 fasce Età 5-11 + Adulti).
+File di test inclusi in `samples/`: `batch_test.xlsx` (9 soggetti, inclusa discrepanza) e `norms_test.xlsx` (20 fasce semestrali + Adulti + Anziani).
 
-`packages.txt` aggiornato con tutti i pacchetti apt richiesti da kaleido 1.x su Streamlit Cloud.
+Dipendenza `kaleido` rimossa — grafici disponibili solo via Plotly interattivo nell'interfaccia web; PDF generato senza immagini grafiche.
 
 Valutazione complessiva: **9 / 10**
 

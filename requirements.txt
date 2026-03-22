@@ -1,9 +1,6 @@
-# Versioni testate: streamlit 1.55, plotly 6.6, fpdf2 2.8, pandas 2.3, kaleido 1.2, openpyxl 3.1
+# Versioni testate: streamlit 1.55, plotly 6.6, fpdf2 2.8, pandas 2.3, openpyxl 3.1
 streamlit>=1.55.0,<2.0
 plotly>=6.0.0,<7.0
 fpdf2>=2.7.0,<3.0
 openpyxl>=3.1.0,<4.0
 pandas>=2.0.0,<3.0
-# kaleido: usato per esportare grafici in PNG per PDF. Si richiede >=0.2.1;
-# se non disponibile a runtime il PDF viene generato senza grafici (fallback integrato).
-kaleido>=0.2.1

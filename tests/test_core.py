@@ -5,9 +5,7 @@ Esegui con:  python -m pytest tests/test_core.py -v
 """
 
 import json
-import os
 import sys
-import tempfile
 from pathlib import Path
 
 import pytest
@@ -18,12 +16,12 @@ if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
 from core.answer_key import ANSWER_KEY, SETS, TOTAL_ITEMS, MAX_PER_SET
-from core.scoring import score_responses, score_with_norms, ScoringResult
+from core.scoring import score_responses, score_with_norms
 from core.norms import (
     AGE_BANDS, lookup_percentile, describe_percentile,
     age_to_band, load_norm_table, save_norms_csv,
-    is_using_placeholder, get_norms_csv_path, get_norm_table_as_dicts,
-    _PLACEHOLDER_TABLE,
+    get_norm_table_as_dicts,
+    _PLACEHOLDER_TABLE, compute_age,
 )
 from core.pdf_report import generate_pdf, _sanitize
 from core.charts import bar_chart_sets, radar_chart, percentile_gauge, item_heatmap, total_bar
@@ -138,10 +136,10 @@ class TestScoring:
         assert result.discrepancy_flag == "significativa"
 
     def test_score_with_norms_child(self):
-        """Scoring con norme per bambino di 5 anni."""
+        """Scoring con norme per bambino di 5 anni e 3 mesi."""
         resp = dict(ANSWER_KEY)
-        result = score_with_norms(resp, age=5)
-        assert result.age_band == "5"
+        result = score_with_norms(resp, age_years=5, age_months=3)
+        assert result.age_band == "5;0-5;6"
         assert result.percentile != "–"
         assert result.description != ""
 
@@ -155,8 +153,8 @@ class TestScoring:
     def test_score_with_norms_direct_band(self):
         """Scoring con age_band diretto."""
         resp = dict(ANSWER_KEY)
-        result = score_with_norms(resp, age_band="7")
-        assert result.age_band == "7"
+        result = score_with_norms(resp, age_band="7;0-7;6")
+        assert result.age_band == "7;0-7;6"
         assert result.percentile != "–"
 
     def test_invalid_responses_are_treated_as_missing(self):
@@ -185,18 +183,29 @@ class TestScoring:
 
 class TestNorms:
     def test_age_bands_defined(self):
-        assert len(AGE_BANDS) == 11  # 3-11 + Adulti + Anziani
+        assert len(AGE_BANDS) == 20  # 18 semestri + Adulti + Anziani
 
     def test_age_to_band(self):
-        assert age_to_band(3) == "3"
-        assert age_to_band(11) == "11"
+        assert age_to_band(3, 0) == "3;0-3;6"
+        assert age_to_band(3, 3) == "3;0-3;6"
+        assert age_to_band(3, 6) == "3;6-4;0"
+        assert age_to_band(5, 0) == "5;0-5;6"
+        assert age_to_band(5, 8) == "5;6-6;0"
+        assert age_to_band(11, 0) == "11;0-11;6"
+        assert age_to_band(11, 9) == "11;6-12;0"
         assert age_to_band(30) == "Adulti"
         assert age_to_band(70) == "Anziani"
         assert age_to_band(2) == ""
         assert age_to_band(None) == ""
 
+    def test_compute_age(self):
+        from datetime import date
+        assert compute_age(date(2020, 1, 15), date(2025, 7, 20)) == (5, 6)
+        assert compute_age(date(2020, 6, 1), date(2025, 3, 15)) == (4, 9)
+        assert compute_age(date(2020, 3, 20), date(2025, 3, 10)) == (4, 11)
+
     def test_lookup_percentile_valid(self):
-        pct = lookup_percentile(20, "3")
+        pct = lookup_percentile(20, "3;0-3;6")
         assert pct != "–"
 
     def test_lookup_percentile_invalid_band(self):
@@ -204,11 +213,11 @@ class TestNorms:
         assert pct == "–"
 
     def test_lookup_percentile_zero(self):
-        pct = lookup_percentile(0, "3")
+        pct = lookup_percentile(0, "3;0-3;6")
         assert pct == "<5"
 
     def test_lookup_percentile_max(self):
-        pct = lookup_percentile(36, "3")
+        pct = lookup_percentile(36, "3;0-3;6")
         assert pct == ">95"
 
     def test_describe_percentile(self):
@@ -248,8 +257,8 @@ class TestNorms:
         csv_path = tmp_path / "norms.csv"
         monkeypatch.setattr("core.norms._NORMS_CSV_PATH", csv_path)
 
-        # Crea un CSV valido di test
-        lines = ["Punteggio Grezzo,Età 3,Età 4,Età 5"]
+        # Crea un CSV valido di test con fasce semestrali
+        lines = ["Punteggio Grezzo,3;0-3;6,3;6-4;0,4;0-4;6"]
         for score in range(0, 37, 2):
             lines.append(f"{score},<5,10,25")
         csv_bytes = "\n".join(lines).encode("utf-8")
@@ -270,20 +279,20 @@ class TestNorms:
         monkeypatch.setattr("core.norms._NORMS_CSV_PATH", csv_path)
 
         csv_bytes = (
-            "Punteggio Grezzo,Età 7,Adulti,Anziani\n"
+            "Punteggio Grezzo,7;0-7;6,Adulti,Anziani\n"
             "0,<5,10,25\n"
             "20,50,75,90\n"
         ).encode("utf-8")
 
         msg = save_norms_csv(csv_bytes)
         assert not msg.startswith("Errore"), msg
-        assert lookup_percentile(20, "7") == "50"
+        assert lookup_percentile(20, "7;0-7;6") == "50"
         assert lookup_percentile(20, "Adulti") == "75"
         assert lookup_percentile(20, "Anziani") == "90"
-        assert lookup_percentile(20, "3") == "–"
+        assert lookup_percentile(20, "3;0-3;6") == "–"
 
         dicts = get_norm_table_as_dicts()
-        assert "Età 7" in dicts[0]
+        assert "Età 7;0-7;6" in dicts[0]
         assert "Età Adulti" in dicts[0]
         assert "Età Anziani" in dicts[0]
 
@@ -293,7 +302,7 @@ class TestNorms:
         monkeypatch.setattr("core.norms._NORMS_CSV_PATH", csv_path)
 
         bad_csv = (
-            "Punteggio Grezzo,Età 3,Età 4\n"
+            "Punteggio Grezzo,3;0-3;6,3;6-4;0\n"
             "0,<5,10\n"
             "10,25\n"
         ).encode("utf-8")
@@ -307,7 +316,7 @@ class TestNorms:
         csv_path = tmp_path / "norms.csv"
         monkeypatch.setattr("core.norms._NORMS_CSV_PATH", csv_path)
         bad_csv = (
-            "Punteggio Grezzo,Et\u00e0 3\n"
+            "Punteggio Grezzo,3;0-3;6\n"
             "abc,<5\n"
             "10,25\n"
         ).encode("utf-8")
@@ -339,7 +348,7 @@ class TestPDF:
 
     def test_generate_pdf_with_norms(self):
         """PDF con percentile compilato."""
-        result = score_with_norms(dict(ANSWER_KEY), age=7)
+        result = score_with_norms(dict(ANSWER_KEY), age_years=7)
         result.nome = "Marco"
         result.cognome = "Rossi"
         pdf_bytes = generate_pdf(result)
@@ -355,7 +364,7 @@ class TestPDF:
             resp[item] = ANSWER_KEY[item] if i < 5 else (ANSWER_KEY[item] % 6) + 1
         for item in SETS["B"]:
             resp[item] = ANSWER_KEY[item]
-        result = score_with_norms(resp, age=8)
+        result = score_with_norms(resp, age_years=8)
         result.nome = "Discrepanza"
         result.cognome = "Test"
         pdf_bytes = generate_pdf(result)
@@ -393,7 +402,7 @@ class TestDatabase:
 
     def test_save_and_retrieve(self):
         from core.database import save_result, get_all_subjects, get_subject
-        result = score_with_norms(dict(ANSWER_KEY), age=6)
+        result = score_with_norms(dict(ANSWER_KEY), age_years=6)
         result.nome = "Mario"
         result.cognome = "Rossi"
         rec_id = save_result(result, dict(ANSWER_KEY))
@@ -419,7 +428,7 @@ class TestDatabase:
 
     def test_subject_to_result(self):
         from core.database import save_result, get_subject, subject_to_result
-        result = score_with_norms(dict(ANSWER_KEY), age=8)
+        result = score_with_norms(dict(ANSWER_KEY), age_years=8)
         result.nome = "Rebuild"
         result.cognome = "Test"
         rec_id = save_result(result, dict(ANSWER_KEY))
@@ -474,7 +483,7 @@ class TestDatabase:
 class TestCharts:
     @pytest.fixture
     def sample_result(self):
-        return score_with_norms(dict(ANSWER_KEY), age=7)
+        return score_with_norms(dict(ANSWER_KEY), age_years=7, age_months=3)
 
     def test_bar_chart(self, sample_result):
         fig = bar_chart_sets(sample_result)

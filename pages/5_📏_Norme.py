@@ -10,7 +10,6 @@ import io
 
 import streamlit as st
 import pandas as pd
-from pathlib import Path
 
 from core.norms import (
     AGE_BANDS, get_norm_table_as_dicts,
@@ -122,7 +121,7 @@ with st.expander("📂 Carica / Aggiorna Norme", expanded=using_placeholder):
                     file_name="CPM_Norme_Attuali.xlsx",
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 )
-            except Exception:
+            except (ValueError, OSError):
                 pass
 
     st.divider()
@@ -168,7 +167,7 @@ q1, q2 = st.columns(2)
 with q1:
     raw = st.number_input("Punteggio Grezzo", min_value=0, max_value=36, value=18, step=1, key="norm_raw")
 with q2:
-    bands_calc = [col.replace("Età ", "") for col in age_cols_available] if age_cols_available else AGE_BANDS[:9]
+    bands_calc = [col.replace("Età ", "") for col in age_cols_available] if age_cols_available else AGE_BANDS[:18]
     band = st.selectbox("Fascia d'Età", options=bands_calc, key="norm_band")
 
 pct = lookup_percentile(raw, band)

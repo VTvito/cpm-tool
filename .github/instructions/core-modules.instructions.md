@@ -22,8 +22,10 @@ applyTo: "core/**/*.py"
 - `is_using_placeholder()`: True if CSV is absent or invalid.
 - `get_norms_csv_path()`: returns the Path to the CSV file.
 - `_get_age_col()`: dynamically builds age-band → column-index mapping from loaded table.
-- `AGE_BANDS`: supported age ranges (3–11, Adulti, Anziani). Only bands present in the CSV get mapped.
-- CSV norms are mapped by header label, not by column position. Preserve that behavior.
+- `AGE_BANDS`: 20 supported bands — 18 six-month intervals (`"3;0-3;6"` … `"11;6-12;0"`) + `"Adulti"` + `"Anziani"`. Only bands present in the CSV get mapped.
+- `compute_age(birth_date, test_date)`: returns `(years, months)` with day-level precision.
+- `age_to_band(age_years, age_months)`: maps age to the correct 6-month band.
+- CSV headers use the `"N;M-N;M"` notation (optionally prefixed with `"Età "`). Mapped by header label, not by column position.
 - `NORM_TABLE`: static fallback pointing to `_PLACEHOLDER_TABLE` — always prefer `load_norm_table()`.
 
 ### scoring.py
@@ -33,7 +35,7 @@ applyTo: "core/**/*.py"
 - `ScoringResult.discrepancy`: float = max(set scores) – min(set scores).
 - `ScoringResult.discrepancy_flag`: `""` (ok), `"attenzione"` (Δ ≥ 4), `"significativa"` (Δ ≥ 6).
 - `score_responses()`: pure scoring without norms.
-- `score_with_norms()`: scoring + percentile lookup.
+- `score_with_norms()`: scoring + percentile lookup. Accepts `age_years` + `age_months` (or direct `age_band`).
 
 ### charts.py
 - Color palette: A = `#2980B9`, Ab = `#E67E22`, B = `#27AE60`
@@ -44,7 +46,7 @@ applyTo: "core/**/*.py"
 - fpdf2 uses Helvetica (built-in) — **no Unicode support**.
 - Always pass text through `_sanitize()` before writing to PDF.
 - `generate_pdf()` returns `bytes` (wrapped with `bytes(pdf.output())`).
-- Chart images are embedded via temp files (auto-cleaned).
+- Charts are displayed interactively via Plotly in the Streamlit UI; they are **not** embedded in the PDF.
 - Discrepancy section is included when `result.discrepancy > 0`.
 - Footer/disclaimer must stay aligned with whether norms are placeholder or loaded from CSV.
 

@@ -9,7 +9,7 @@ from pathlib import Path
 import streamlit as st
 import pandas as pd
 
-from core.database import get_all_subjects, delete_subject, subject_to_result, init_db, DB_PATH
+from core.database import get_all_subjects, delete_subject, init_db, DB_PATH
 from streamlit_ui import configure_page
 
 
@@ -130,50 +130,98 @@ if "risposte" in df_display.columns:
 # ─────────────────────────────────────────
 #  RICERCA E FILTRI
 # ─────────────────────────────────────────
-# Ricerca per nome/cognome
+st.subheader("🔍 Ricerca e Filtri")
+
+# Ricerca flessibile: nome, cognome o entrambi
 search_text = st.text_input(
-    "🔍 Cerca per nome o cognome",
+    "🔍 Cerca",
     key="db_search",
-    placeholder="Es: Rossi, Marco, ...",
+    placeholder="Nome, cognome o entrambi…",
 )
 if search_text:
-    search_lower = search_text.lower()
+    tokens = search_text.lower().split()
+    mask = pd.Series(True, index=df_display.index)
+    for token in tokens:
+        token_mask = (
+            df_display["Nome"].astype(str).str.lower().str.contains(token, na=False, regex=False) |
+            df_display["Cognome"].astype(str).str.lower().str.contains(token, na=False, regex=False)
+        )
+        mask = mask & token_mask
+    df_display = df_display[mask]
+
+f1, f2 = st.columns(2)
+with f1:
+    filter_exam = st.multiselect(
+        "Esaminatore",
+        options=sorted(df_display["Esaminatore"].dropna().unique()),
+        key="db_filt_exam",
+        placeholder="Seleziona…",
+    )
+with f2:
+    filter_band = st.multiselect(
+        "Fascia Età",
+        options=sorted(df_display["Fascia Età"].dropna().unique()),
+        key="db_filt_band",
+        placeholder="Seleziona…",
+    )
+
+f3, f4 = st.columns(2)
+with f3:
+    # Valori percentile unici presenti nella tabella
+    pct_options = sorted(
+        df_display["Percentile"].dropna().unique(),
+        key=lambda x: (0 if x == "<5" else 100 if x == ">95" else int(x) if x.isdigit() else 50),
+    )
+    filter_pct = st.multiselect(
+        "Percentile",
+        options=pct_options,
+        key="db_filt_pct",
+        placeholder="Seleziona…",
+    )
+with f4:
+    # Filtro data somministrazione
+    date_col = "Data Somm."
+    valid_dates = pd.to_datetime(df_display[date_col], errors="coerce").dropna()
+    if not valid_dates.empty:
+        min_d = valid_dates.min().date()
+        max_d = valid_dates.max().date()
+        filter_dates = st.date_input(
+            "Data somministrazione (da – a)",
+            value=(min_d, max_d),
+            min_value=min_d,
+            max_value=max_d,
+            format="DD/MM/YYYY",
+            key="db_filt_date",
+        )
+    else:
+        filter_dates = None
+
+f5_col, _ = st.columns(2)
+with f5_col:
+    filter_total = st.slider(
+        "Range Punteggio Totale",
+        min_value=0, max_value=36,
+        value=(0, 36),
+        key="db_filt_total",
+    )
+
+if filter_exam:
+    df_display = df_display[df_display["Esaminatore"].isin(filter_exam)]
+if filter_band:
+    df_display = df_display[df_display["Fascia Età"].isin(filter_band)]
+if filter_pct:
+    df_display = df_display[df_display["Percentile"].isin(filter_pct)]
+if filter_dates and isinstance(filter_dates, tuple) and len(filter_dates) == 2:
+    dt_series = pd.to_datetime(df_display["Data Somm."], errors="coerce")
     df_display = df_display[
-        df_display["Nome"].astype(str).str.lower().str.contains(search_lower, na=False, regex=False) |
-        df_display["Cognome"].astype(str).str.lower().str.contains(search_lower, na=False, regex=False)
+        dt_series.notna() &
+        (dt_series.dt.date >= filter_dates[0]) &
+        (dt_series.dt.date <= filter_dates[1])
     ]
-
-with st.expander("🔍 Filtri avanzati", expanded=False):
-    f1, f2, f3 = st.columns(3)
-
-    with f1:
-        filter_exam = st.multiselect(
-            "Esaminatore",
-            options=sorted(df_display["Esaminatore"].dropna().unique()),
-            key="db_filt_exam",
-        )
-    with f2:
-        filter_band = st.multiselect(
-            "Fascia Età",
-            options=sorted(df_display["Fascia Età"].dropna().unique()),
-            key="db_filt_band",
-        )
-    with f3:
-        filter_total = st.slider(
-            "Range Punteggio Totale",
-            min_value=0, max_value=36,
-            value=(0, 36),
-            key="db_filt_total",
-        )
-
-    if filter_exam:
-        df_display = df_display[df_display["Esaminatore"].isin(filter_exam)]
-    if filter_band:
-        df_display = df_display[df_display["Fascia Età"].isin(filter_band)]
-    df_display = df_display[
-        (df_display["Totale"] >= filter_total[0]) &
-        (df_display["Totale"] <= filter_total[1])
-    ]
+df_display = df_display[
+    (df_display["Totale"] >= filter_total[0]) &
+    (df_display["Totale"] <= filter_total[1])
+]
 
 st.markdown(f"**{len(df_display)}** soggetti trovati")
 

@@ -12,7 +12,7 @@ import zipfile
 import streamlit as st
 
 from core.database import get_all_subjects, subject_to_result, init_db
-from core.charts import bar_chart_sets, item_heatmap, percentile_gauge
+from core.charts import bar_chart_sets, item_heatmap
 from core.pdf_report import generate_pdf
 from streamlit_ui import configure_page
 
@@ -51,29 +51,12 @@ def _on_generate_report_pdf():
     result = subject_to_result(selected_subject)
     result.note = st.session_state.get("rpt_note", "")
 
-    chart_imgs = {}
-    warning_message = ""
-    try:
-        chart_imgs["bar_sets"] = bar_chart_sets(result).to_image(
-            format="png", width=800, height=350, scale=2)
-        chart_imgs["heatmap"] = item_heatmap(result).to_image(
-            format="png", width=800, height=250, scale=2)
-        if result.age_band:
-            chart_imgs["gauge"] = percentile_gauge(result.percentile).to_image(
-                format="png", width=600, height=280, scale=2)
-    except Exception:
-        chart_imgs = None
-        warning_message = (
-            "PDF generato senza grafici. "
-            "Per includerli, installa il pacchetto kaleido nell'ambiente dell'app."
-        )
-
-    pdf_bytes = generate_pdf(result, chart_imgs)
+    pdf_bytes = generate_pdf(result)
     filename = _safe_report_filename(result.nome, result.cognome)
 
     st.session_state["rpt_pdf_bytes"] = pdf_bytes
     st.session_state["rpt_pdf_name"] = filename
-    st.session_state["rpt_pdf_warning"] = warning_message
+    st.session_state.pop("rpt_pdf_warning", None)
     st.session_state["rpt_pdf_success"] = "Report generato con successo!"
 
 st.header("📄 Genera Report PDF")
@@ -196,19 +179,7 @@ def _on_generate_batch_zip():
     with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
         for subj in all_subjects:
             result = subject_to_result(subj)
-            chart_imgs = {}
-            try:
-                chart_imgs["bar_sets"] = bar_chart_sets(result).to_image(
-                    format="png", width=800, height=350, scale=2)
-                chart_imgs["heatmap"] = item_heatmap(result).to_image(
-                    format="png", width=800, height=250, scale=2)
-                if result.age_band:
-                    chart_imgs["gauge"] = percentile_gauge(result.percentile).to_image(
-                        format="png", width=600, height=280, scale=2)
-            except Exception:
-                chart_imgs = None
-
-            pdf_bytes = generate_pdf(result, chart_imgs)
+            pdf_bytes = generate_pdf(result)
             filename = _safe_report_filename(result.nome, result.cognome)
             base = filename.rsplit(".", 1)[0]
             filename = f"{base}_ID{subj['id']}.pdf"

@@ -6,12 +6,14 @@ che la pagina si ri-esegua, garantendo che pulsanti come "Salva" vedano
 lo stato aggiornato al momento del rendering.
 """
 
+import io
 import streamlit as st
+import pandas as pd
 from datetime import date
 
 from core.answer_key import SETS
 from core.scoring import score_with_norms, ScoringResult, normalize_response
-from core.norms import age_to_band
+from core.norms import age_to_band, compute_age
 from core.charts import bar_chart_sets, radar_chart, percentile_gauge, item_heatmap
 from core.pdf_report import generate_pdf
 from core.database import save_result
@@ -97,14 +99,12 @@ def _on_calcola():
     st.session_state.pop("calc_error", None)
 
     # Calcola età
-    eta, eta_band = None, ""
+    eta_anni, eta_mesi, eta_band = None, 0, ""
     if dn and ds:
-        eta = ds.year - dn.year
-        if (ds.month, ds.day) < (dn.month, dn.day):
-            eta -= 1
-        eta_band = age_to_band(eta)
+        eta_anni, eta_mesi = compute_age(dn, ds)
+        eta_band = age_to_band(eta_anni, eta_mesi)
 
-    result = score_with_norms(responses, age=eta, age_band=eta_band)
+    result = score_with_norms(responses, age_years=eta_anni, age_months=eta_mesi, age_band=eta_band)
     result.nome = st.session_state.get("sc_nome", "")
     result.cognome = st.session_state.get("sc_cognome", "")
     result.data_nascita = dn
@@ -182,29 +182,27 @@ with st.expander("👤 Dati del Soggetto", expanded=True):
 
     data_nascita = st.session_state.get("sc_dn")
     data_somm = st.session_state.get("sc_ds")
-    eta = None
+    eta_anni = None
+    eta_mesi = 0
     eta_band = ""
     if data_nascita and data_somm:
-        delta = data_somm.year - data_nascita.year
-        if (data_somm.month, data_somm.day) < (data_nascita.month, data_nascita.day):
-            delta -= 1
-        eta = delta
-        eta_band = age_to_band(eta)
+        eta_anni, eta_mesi = compute_age(data_nascita, data_somm)
+        eta_band = age_to_band(eta_anni, eta_mesi)
 
     # Validazione date
     if data_nascita and data_somm and data_nascita > data_somm:
         st.error("❌ La data di nascita non può essere successiva alla data di somministrazione.")
-        eta = None
+        eta_anni = None
         eta_band = ""
-    elif eta is not None and eta < 0:
+    elif eta_anni is not None and eta_anni < 0:
         st.error("❌ L'età calcolata è negativa. Controllare le date inserite.")
-        eta = None
+        eta_anni = None
         eta_band = ""
 
-    if eta is not None:
+    if eta_anni is not None:
         col_eta1, col_eta2, _ = st.columns([1, 1, 2])
         with col_eta1:
-            st.metric("Età (anni)", eta)
+            st.metric("Età (anni;mesi)", f"{eta_anni};{eta_mesi}")
         with col_eta2:
             st.metric("Fascia normativa", eta_band if eta_band else "Non disponibile")
 
@@ -352,19 +350,7 @@ if "last_result" in st.session_state:
 
     # ── PDF download ────────────────────
     try:
-        chart_imgs = {}
-        try:
-            chart_imgs["bar_sets"] = bar_chart_sets(result).to_image(
-                format="png", width=800, height=350, scale=2)
-            chart_imgs["heatmap"] = item_heatmap(result).to_image(
-                format="png", width=800, height=250, scale=2)
-            if result.age_band:
-                chart_imgs["gauge"] = percentile_gauge(result.percentile).to_image(
-                    format="png", width=600, height=280, scale=2)
-        except Exception:
-            chart_imgs = None
-
-        pdf_bytes = generate_pdf(result, chart_imgs)
+        pdf_bytes = generate_pdf(result)
         fn = f"CPM_Report_{result.cognome}_{result.nome}.pdf" if result.cognome else "CPM_Report.pdf"
         st.download_button(
             "📄 Scarica PDF",
@@ -376,3 +362,75 @@ if "last_result" in st.session_state:
         )
     except Exception as e:
         st.warning(f"PDF non disponibile: {e}")
+
+    # ── Export dati (CSV / Excel / anonimizzato) ─────
+    st.divider()
+    st.subheader("📥 Esporta Risultato")
+
+    row_data = {
+        "Nome": result.nome,
+        "Cognome": result.cognome,
+        "Fascia Età": result.age_band,
+        "Set A": result.set_a_score,
+        "Set Ab": result.set_ab_score,
+        "Set B": result.set_b_score,
+        "Totale": result.total_raw,
+        "Percentile": result.percentile,
+        "Descrizione": result.description,
+        "Discrepanza": result.discrepancy,
+        "Flag": result.discrepancy_flag,
+    }
+    export_df = pd.DataFrame([row_data])
+    anon_df = export_df.copy()
+    anon_df["Nome"] = "S001"
+    anon_df["Cognome"] = ""
+
+    exp_c1, exp_c2 = st.columns(2)
+    with exp_c1:
+        csv_out = export_df.to_csv(index=False).encode("utf-8-sig")
+        st.download_button(
+            "⬇️ Scarica CSV",
+            data=csv_out,
+            file_name="CPM_Risultato_Singolo.csv",
+            mime="text/csv",
+            width="stretch",
+            key="btn_exp_csv",
+        )
+    with exp_c2:
+        buf_xl = io.BytesIO()
+        with pd.ExcelWriter(buf_xl, engine="openpyxl") as w:
+            export_df.to_excel(w, index=False, sheet_name="Risultato")
+        st.download_button(
+            "⬇️ Scarica Excel",
+            data=buf_xl.getvalue(),
+            file_name="CPM_Risultato_Singolo.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            width="stretch",
+            key="btn_exp_xlsx",
+        )
+
+    anon_c1, anon_c2 = st.columns(2)
+    with anon_c1:
+        csv_anon = anon_df.to_csv(index=False).encode("utf-8-sig")
+        st.download_button(
+            "🔒 Anonimizzato (CSV)",
+            data=csv_anon,
+            file_name="CPM_Risultato_Anonimo.csv",
+            mime="text/csv",
+            width="stretch",
+            key="btn_anon_csv",
+            help="Nome sostituito da codice S001.",
+        )
+    with anon_c2:
+        buf_anon = io.BytesIO()
+        with pd.ExcelWriter(buf_anon, engine="openpyxl") as w:
+            anon_df.to_excel(w, index=False, sheet_name="Risultato Anonimo")
+        st.download_button(
+            "🔒 Anonimizzato (Excel)",
+            data=buf_anon.getvalue(),
+            file_name="CPM_Risultato_Anonimo.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            width="stretch",
+            key="btn_anon_xlsx",
+            help="Nome sostituito da codice S001.",
+        )

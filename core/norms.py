@@ -15,19 +15,29 @@ from __future__ import annotations
 import csv
 import io
 import re
+from datetime import date
 from pathlib import Path
 
 # Percorso del file norme esterno
 _NORMS_CSV_PATH = Path(__file__).resolve().parent.parent / "data" / "norms.csv"
 
-# Fasce d'età supportate (anni compiuti)
+# Fasce d'età supportate (semestri: anni;mesi)
 AGE_BANDS: list[str] = [
-    "3", "4", "5", "6", "7", "8", "9", "10", "11",
+    "3;0-3;6", "3;6-4;0",
+    "4;0-4;6", "4;6-5;0",
+    "5;0-5;6", "5;6-6;0",
+    "6;0-6;6", "6;6-7;0",
+    "7;0-7;6", "7;6-8;0",
+    "8;0-8;6", "8;6-9;0",
+    "9;0-9;6", "9;6-10;0",
+    "10;0-10;6", "10;6-11;0",
+    "11;0-11;6", "11;6-12;0",
     "Adulti", "Anziani",
 ]
+_AGE_BAND_SET: set[str] = set(AGE_BANDS)
 
-# Tabella normativa placeholder (usata se il CSV non esiste)
-_PLACEHOLDER_TABLE: list[tuple] = [
+# Placeholder base per anno (9 colonne: età 3-11)
+_BASE_PLACEHOLDER: list[tuple] = [
     (0,  "<5",  "<5",  "<5",  "<5",  "<5",  "<5",  "<5",  "<5",  "<5"),
     (5,  "<5",  "<5",  "<5",  "<5",  "<5",  "<5",  "<5",  "<5",  "<5"),
     (10, "5",   "<5",  "<5",  "<5",  "<5",  "<5",  "<5",  "<5",  "<5"),
@@ -46,6 +56,12 @@ _PLACEHOLDER_TABLE: list[tuple] = [
     (36, ">95", ">95", ">95", ">95", ">95", ">95", ">95", "95",  "90"),
 ]
 
+# Tabella normativa placeholder: ogni colonna anno → 2 colonne semestrali
+_PLACEHOLDER_TABLE: list[tuple] = [
+    tuple([row[0]] + [val for val in row[1:] for _ in range(2)])
+    for row in _BASE_PLACEHOLDER
+]
+
 
 def _load_norm_table_from_csv(path: Path) -> list[tuple] | None:
     """Carica la tabella norme da un file CSV.
@@ -58,34 +74,34 @@ def _load_norm_table_from_csv(path: Path) -> list[tuple] | None:
     try:
         _, rows = _parse_norm_csv_text(path.read_text(encoding="utf-8-sig"))
         return rows
-    except Exception:
-        pass
-    return None
+    except (ValueError, OSError):
+        return None
 
 
 def _normalize_age_band_label(label: str) -> str | None:
-    """Converte un'intestazione CSV in una fascia d'età supportata."""
+    """Converte un'intestazione CSV in una fascia d'età supportata.
+
+    Accetta header come "3;0-3;6", "Età 3;0-3;6", "Adulti", "Età Adulti".
+    """
     clean = label.strip()
     if not clean:
         return None
 
     lowered = clean.lower()
-    lowered = lowered.replace("età", "eta")
-    lowered = lowered.replace("anni", "")
-    lowered = lowered.replace("anno", "")
-    lowered = lowered.strip()
+    lowered = lowered.replace("età", "").replace("eta", "").strip()
 
     if lowered == "adulti":
         return "Adulti"
     if lowered == "anziani":
         return "Anziani"
 
-    match = re.search(r"(\d+)", lowered)
-    if not match:
-        return None
+    # Cerca pattern fascia semestrale: N;M-N;M
+    match = re.search(r"(\d+\s*;\s*\d+\s*-\s*\d+\s*;\s*\d+)", clean)
+    if match:
+        band = re.sub(r"\s", "", match.group(1))  # rimuove spazi interni
+        return band if band in _AGE_BAND_SET else None
 
-    age = match.group(1)
-    return age if age in AGE_BANDS else None
+    return None
 
 
 def _parse_norm_csv_text(csv_text: str) -> tuple[list[str], list[tuple]]:
@@ -141,7 +157,7 @@ def _load_norm_table_with_bands() -> tuple[list[str], list[tuple]] | None:
         return None
     try:
         return _parse_norm_csv_text(_NORMS_CSV_PATH.read_text(encoding="utf-8-sig"))
-    except Exception:
+    except (ValueError, OSError):
         return None
 
 
@@ -204,16 +220,34 @@ def _get_age_col() -> dict[str, int]:
 NORM_TABLE = _PLACEHOLDER_TABLE
 
 
-def age_to_band(age: int | float | None) -> str:
-    """Converte un'età in anni nella fascia normativa appropriata."""
-    if age is None:
+def compute_age(birth_date: date, test_date: date) -> tuple[int, int]:
+    """Calcola età in (anni, mesi) dalla data di nascita alla data di somministrazione."""
+    years = test_date.year - birth_date.year
+    months = test_date.month - birth_date.month
+    if test_date.day < birth_date.day:
+        months -= 1
+    if months < 0:
+        years -= 1
+        months += 12
+    return years, months
+
+
+def age_to_band(age_years: int | None = None, age_months: int = 0) -> str:
+    """Converte un'età (anni, mesi) nella fascia normativa semestrale.
+
+    Formato fasce: "3;0-3;6" = da 3 anni 0 mesi a 3 anni 5 mesi.
+    """
+    if age_years is None:
         return ""
-    age = int(age)
-    if age < 3:
+    age_years = int(age_years)
+    if age_years < 3:
         return ""
-    if 3 <= age <= 11:
-        return str(age)
-    if age >= 65:
+    if 3 <= age_years <= 11:
+        if age_months < 6:
+            return f"{age_years};0-{age_years};6"
+        else:
+            return f"{age_years};6-{age_years + 1};0"
+    if age_years >= 65:
         return "Anziani"
     return "Adulti"
 
